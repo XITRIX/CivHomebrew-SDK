@@ -28,6 +28,14 @@ Overlay three</div></div>
   }
   let rows=await spacing();assert.equal(rows.length,3);
   for(let i=1;i<rows.length;i++)assert(Math.abs(rows[i]-rows[i-1]-33.6)<1,JSON.stringify(rows));
+  await evaluate(`(()=>{var c=document.createElement('canvas');c.id='frame';c.style.cssText='position:absolute;left:10px;top:500px;width:100px;height:100px';document.getElementById('first').appendChild(c);window.frame=CivHomebrewSDK.framebuffer.create({session:shared,view:firstLease,canvas:c,width:2,height:2});frame.present(new Uint8Array([255,0,0,255,0,255,0,255,0,0,255,255,255,255,255,255]));})()`);
+  const firstPixel=await evaluate('Array.from(shared.renderer.read().slice((780*1920+45)*4,(780*1920+45)*4+4))');
+  assert.deepEqual(firstPixel,[255,0,0,255]);
+  await evaluate('window.textureCount=shared.geometry.textures.size;frame.present(new Uint8Array([0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255]));');
+  assert.deepEqual(await evaluate('Array.from(shared.renderer.read().slice((780*1920+45)*4,(780*1920+45)*4+4))'),[0,0,255,255]);
+  await evaluate('frame.close();window.nextFrame=CivHomebrewSDK.framebuffer.create({session:shared,view:firstLease,canvas:document.getElementById("frame"),width:2,height:2});frame.close();');
+  assert.equal(await evaluate('shared.geometry.textures.size===textureCount&&!!document.getElementById("frame").getAttribute("data-civ-pixels")'),true);
+  await evaluate('nextFrame.close();document.getElementById("frame").remove();');
   await evaluate('window.originalGeometry=shared.geometry;window.originalRenderer=shared.renderer;document.getElementById("first").style.display="none";document.getElementById("second").style.display="block";');await sleep(100);
   await evaluate('(async()=>{window.secondLease=await shared.attach(document.getElementById("second"));await firstLease.close();})()');
   assert.equal(await evaluate('shared.active.root.id'), 'second');

@@ -12,6 +12,7 @@ vec4 texel(int id,ivec2 p){
 }
 vec4 sampleImage(int id,vec2 uv){
  int m=int(word(6))+id*4;vec2 size=vec2(word(m+1),word(m+2));
+ if(int(word(m+3))==3)return texel(id,ivec2(floor(uv*size)));
  vec2 p=uv*size-.5,f=fract(p);ivec2 i=ivec2(floor(p));
  return mix(mix(texel(id,i),texel(id,i+ivec2(1,0)),f.x),mix(texel(id,i+ivec2(0,1)),texel(id,i+ivec2(1)),f.x),f.y);
 }

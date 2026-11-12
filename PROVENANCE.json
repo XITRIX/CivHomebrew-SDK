@@ -12,5 +12,12 @@
     "app/src/native-ui/stack.js": "1f0e99eb3a338b9af1d30df1a6efb7f745f0b1399e4c879725516fa7b57cba8e",
     "app/src/native-ui/vulkan.js": "c8fe641ab76f9325a076189ff30fdb4d90578cbc1ee7c982a3ae8ccf7743d5ea",
     "app/src/native-ui/web.js": "0ec11168c83528607aea23d83f83fc22b49fa26e01e5650746f04e4fbfec6549"
+  },
+  "sharedPlatformOrigins": {
+    "nativeBridge": "NS2-Doom/app/src/native.js; SDK symbol/heap primitives extracted, app save/palette policy retained in Doom",
+    "controller": "NS2-experiments/app/src/streaming/controller-input.js; injected native transport",
+    "transfer": "NS2-CivHomebrew/app/src/platform/native-buffer.js",
+    "graphics": "Identical checked context and nine upstream helper files shared with Moonlight; app codec extensions remain in Moonlight",
+    "tooling": "NS2-CivHomebrew/tools/package_payload.py and send_app.py; classic-JS compiler extracted from both runtime builders"
   }
 }

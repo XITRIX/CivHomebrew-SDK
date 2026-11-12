@@ -21,6 +21,8 @@ class ReleaseTests(unittest.TestCase):
             command = ['python3', '-B', str(moved / 'tools/release.py')]
             subprocess.run(command + ['--install', str(consumer)], check=True, capture_output=True)
             version = json.loads((moved / 'package.json').read_text())['version']
+            for name in ['civhomebrew-sdk.js','civapps-native-ui.js']:
+                (moved/'dist'/version/name).read_bytes().decode('ascii')
             filename = 'civhomebrew-sdk-' + version + '.tar.gz'
             archive = moved / 'dist' / filename
             expected = hashlib.sha256((ROOT / 'dist' / filename).read_bytes()).hexdigest()

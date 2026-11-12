@@ -9,7 +9,7 @@ test('independent applications reuse the exact same version without redefining f
  const {g,context}=load(),library=g.CivAppsNativeUI,factory=g.CivNanoVGFactory;
  vm.runInContext(bundle,context);assert.equal(g.CivAppsNativeUI,library);assert.equal(g.CivNanoVGFactory,factory);
  assert.equal(library.version,require('../package.json').version);assert.equal(library.sessions,g.CivNanoVGSession);
- assert.throws(()=>vm.runInContext(bundle.replace('var version="1.0.0"','var version="2.0.0"'),context),/version mismatch/);
+ assert.throws(()=>vm.runInContext(bundle.replace('var version="1.1.0"','var version="2.0.0"'),context),/version mismatch/);
  assert.equal(g.CivAppsNativeUI,library);assert.equal(g.CivNanoVGFactory,factory);
  assert.throws(()=>load({CivNanoVGSession:{api:1}}),/restart Civ VII/);
 });
@@ -32,4 +32,21 @@ test('the generic session never discovers a Launcher or core; serialized leases 
  const [a,b]=await Promise.all([session.attach({id:'first'}),session.attach({id:'second'})]);
  await a.close();assert.equal(session.active.root.id,'second');await b.close();assert.equal(closes,0);
  assert.equal(creates,1);assert.equal(session.stats.terminalBinds,undefined);await session.close();assert.equal(closes,1);
+});
+
+test('only the resident bootstrap handoff may replace a core before graphics initialization',()=>{
+ const fs=require('node:fs'),version=require('../package.json').version;
+ const core=fs.readFileSync(__dirname+'/../dist/'+version+'/civhomebrew-sdk.js','utf8');
+ const previous={api:1,version:'0.0.0'},g={CivHomebrewSDK:previous};g.window=g;const context=vm.createContext(g);
+ assert.throws(()=>vm.runInContext(core,context),/version mismatch/);assert.equal(g.CivHomebrewSDK,previous);
+ g.__civSDKBootstrapHandoff=true;vm.runInContext(core,context);assert.equal(g.CivHomebrewSDK.version,version);
+ delete g.__civSDKBootstrapHandoff;vm.runInContext(bundle,context);g.__civSDKBootstrapHandoff=true;
+ assert.throws(()=>vm.runInContext(core.replace('var version='+JSON.stringify(version),'var version="99.0.0"'),context),/version mismatch/);
+});
+test('framebuffer leases retain bounded image slots and stale close cannot release a newer lease',()=>{
+ let images=0,updates=0,invalidates=0;const geometry={pixels:()=>({source:'pixels:'+(++images),update:()=>updates++})};
+ const {g}=load(),attributes=new Map(),canvas={setAttribute:(k,v)=>attributes.set(k,v),getAttribute:k=>attributes.get(k),removeAttribute:k=>attributes.delete(k)},options={session:{geometry},canvas,width:2,height:2,view:{update(){},invalidate(){invalidates++;}}};
+ const a=g.CivHomebrewSDK.framebuffer.create(options);assert.throws(()=>g.CivHomebrewSDK.framebuffer.create(options),/active lease/);a.present(new Uint8Array(16));a.close();
+ const b=g.CivHomebrewSDK.framebuffer.create(options);a.close();assert.equal(images,1);assert(attributes.has('data-civ-pixels'));assert.throws(()=>a.present(new Uint8Array(16)),/closed/);b.close();
+ const c=g.CivHomebrewSDK.framebuffer.create({...options,width:320,height:200});assert.equal(images,2);c.close();assert.equal(updates,1);assert.equal(invalidates,3);
 });

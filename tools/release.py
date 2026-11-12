@@ -13,7 +13,8 @@ import json
 import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULES = ([('src', n) for n in ['bytes', 'stack', 'context']] +
+CORE_MODULES = [('src', n) for n in ['bytes', 'stack', 'native-bridge', 'context', 'transfer', 'controller', 'app', 'framebuffer']]
+MODULES = (
            [('vendor', n) for n in ['civ-vulkan', 'nanovg', 'nanovg-assets', 'nanovg-shaders']] +
            [('src', n) for n in ['scene', 'geometry', 'vulkan', 'prototype', 'session', 'web']])
 
@@ -34,26 +35,44 @@ def build():
         for name, digest in json.loads((base / 'SOURCE.json').read_text())['sha256'].items():
             if hashlib.sha256((base / name).read_bytes()).hexdigest() != digest:
                 raise ValueError('Pinned upstream source changed: ' + name)
+    hashes = {}
+    def modules(entries):
+        result = ''
+        for directory, name in entries:
+            path = ROOT / directory / (name + '.js')
+            text = path.read_text()
+            hashes[str(path.relative_to(ROOT))] = hashlib.sha256(path.read_bytes()).hexdigest()
+            if name == 'nanovg':
+                text = '\n'.join('' if not line.strip() else line for line in text.splitlines()) + '\n'
+            result += '\n;/* CIVAPPS_MODULE ' + name + ' */\n' + text + '\n;/* CIVAPPS_MODULE_END ' + name + ' */\n'
+        return result
+    core = '''/* CivHomebrew-SDK VERSION core; GPL-3.0-or-later. */
+(function(g){"use strict";
+var version=VERSION_JSON,existing=g.CivHomebrewSDK;
+if(existing){
+ if(existing.api===1&&existing.version===version)return;
+ if(!g.__civSDKBootstrapHandoff||g.CivAppsNativeUI||g.__civNanoVGVulkan)throw Error('CivHomebrew SDK version mismatch; update all apps and restart Civ VII');
+}
+'''.replace('VERSION_JSON', json.dumps(version)).replace('VERSION', version)
+    core += modules(CORE_MODULES)
+    core += '''g.CivHomebrewSDK=Object.freeze({name:'civhomebrew-sdk',api:1,version:version,
+ native:g.CivSDKNative,bytes:g.CivSDKBytes,transfer:g.CivSDKTransfer,stack:g.CivSDKStack,
+ graphics:g.CivSDKGraphics,controller:g.CivSDKController,app:g.CivSDKApp,framebuffer:g.CivSDKFramebuffer,
+ get nativeUI(){return g.CivAppsNativeUI||null;},get graphicsModules(){return g.CivNanoVGModules||null;}});
+})(typeof window!=="undefined"?window:globalThis);
+'''
     source = '''/* civapps-native-ui VERSION; GPL-3.0-or-later; see NOTICE.txt. */
 (function(g){"use strict";
 var version=VERSION_JSON,existing=g.CivAppsNativeUI;
 if(existing){
- if(existing.api!==1||existing.version!==version||existing.sessions!==g.CivNanoVGSession)
+ if(existing.api!==1||existing.version!==version||existing.sessions!==g.CivNanoVGSession||!g.CivHomebrewSDK||g.CivHomebrewSDK.version!==version)
   throw Error('CivApps native UI version mismatch; update the Launcher and app together, then restart Civ VII');
  return;
 }
 if(g.CivNanoVGSession||g.__civNanoVGVulkan)
  throw Error('Update the native Launcher and restart Civ VII before loading CivApps native UI');
 '''.replace('VERSION_JSON', json.dumps(version)).replace('VERSION', version)
-    hashes = {}
-    for directory, name in MODULES:
-        path = ROOT / directory / (name + '.js')
-        text = path.read_text()
-        # Emscripten emits whitespace-only lines; preserve code and literals.
-        if name == 'nanovg':
-            text = '\n'.join('' if not line.strip() else line for line in text.splitlines()) + '\n'
-        hashes[str(path.relative_to(ROOT))] = hashlib.sha256(path.read_bytes()).hexdigest()
-        source += '\n;/* CIVAPPS_MODULE ' + name + ' */\n' + text + '\n;/* CIVAPPS_MODULE_END ' + name + ' */\n'
+    source += core + modules(MODULES)
     source += '''g.CivAppsNativeUI=Object.freeze({name:'civapps-native-ui',api:1,version:version,
  sessions:g.CivNanoVGSession,views:g.CivNanoVGPrototype,scene:g.CivNanoVGScene,
  geometry:g.CivNanoVGGeometry,web:g.CivNanoVGWeb});
@@ -61,17 +80,28 @@ if(g.CivNanoVGSession||g.__civNanoVGVulkan)
 '''
     notices = 'civapps-native-ui ' + version + '\nGPL-3.0-or-later\n\n'
     notices += (ROOT / 'PROVENANCE.json').read_text() + '\n' + (ROOT / 'LICENSE').read_text()
-    for name in ['nanovg/LICENSE.txt', 'nanovg/Roboto-LICENSE.txt', 'source-code-pro/LICENSE.md', 'civ-vulkan/LICENSE']:
+    for name in ['CivSwitch-LICENSE.txt', 'nanovg/LICENSE.txt', 'nanovg/Roboto-LICENSE.txt', 'source-code-pro/LICENSE.md', 'civ-vulkan/LICENSE']:
         notices += '\n\n' + name + '\n' + (ROOT / 'third_party' / name).read_text()
-    contents = {'civapps-native-ui.js': source.encode(), 'NOTICE.txt': notices.encode(),
+    embedded='\n/* CivHomebrew SDK redistribution notices (JSON-escaped ASCII):\n'+json.dumps(notices,ensure_ascii=True).replace('*/','* /')+'\n*/\n'
+    core+=embedded
+    source+=embedded
+    # Preserve Unicode string/regex semantics while keeping ordered scripts narrow in V8.
+    def ascii_js(text):
+        return ''.join(c if ord(c)<128 else json.dumps(c,ensure_ascii=True)[1:-1] for c in text)
+    core=ascii_js(core)
+    source=ascii_js(source)
+    contents = {'civapps-native-ui.js': source.encode(), 'civhomebrew-sdk.js': core.encode(), 'NOTICE.txt': notices.encode(),
                 'consume.py': (ROOT / 'tools/consume.py').read_bytes(),
                 'install.py': Path(__file__).read_bytes(),
-                'README.txt': ('CivHomebrew-SDK '+version+'\nInstall: python3 install.py --from-release . --install /path/to/app\nSource: https://github.com/XITRIX/CivHomebrew-SDK/tree/v'+version+'\n').encode()}
+                'README.txt': ('CivHomebrew-SDK '+version+'\nInstall: python3 install.py --from-release . --install /path/to/app\nSource: https://github.com/XITRIX/CivHomebrew-SDK\n').encode()}
     for path in sorted((ROOT / 'testing').iterdir()):
         if path.is_file():
             contents['testing/' + path.name] = path.read_bytes()
+    for name in ['package_payload.py', 'send_app.py', 'classic_modules.py']:
+        contents['tooling/' + name] = (ROOT / 'tools' / name).read_bytes()
     manifest = dict(name='civapps-native-ui', version=version, api=1,
-                    sdk=dict(name='CivHomebrew-SDK', repository=package['repository']['url'], ref='v'+version), sources=hashes,
+                    sdk=dict(name='CivHomebrew-SDK', repository=package['repository']['url'], ref='main'),
+                    sharedNative=json.loads((ROOT/'third_party/civ-vulkan/SOURCE.json').read_text())['sha256'], sources=hashes,
                     sha256={name: hashlib.sha256(data).hexdigest() for name, data in contents.items()})
     contents['manifest.json'] = (json.dumps(manifest, indent=2) + '\n').encode()
     out = ROOT / 'dist' / version
@@ -114,14 +144,17 @@ if(g.CivNanoVGSession||g.__civNanoVGVulkan)
     return out
 
 
-def install(release, consumer):
+def install(release, consumer, revision=None):
     consumer = consumer.resolve()
     manifest = json.loads((release / 'manifest.json').read_text())
     targets = {'civapps-native-ui.js': 'app/vendor/native-ui-runtime.js',
+               'civhomebrew-sdk.js': 'app/vendor/civhomebrew-sdk.js',
                'NOTICE.txt': 'app/vendor/civapps-native-ui-NOTICE.txt',
                'consume.py': 'tools/civapps_native_ui.py'}
     targets.update({name: 'tools/civapps-native-ui/' + Path(name).name
                     for name in manifest['sha256'] if name.startswith('testing/')})
+    targets.update({name: 'tools/' + Path(name).name
+                    for name in manifest['sha256'] if name.startswith('tooling/')})
     verified = {}
     # Validate all inputs before replacing any consumer file.
     for name in targets:
@@ -129,13 +162,29 @@ def install(release, consumer):
         if hashlib.sha256(data).hexdigest() != manifest['sha256'][name]:
             raise ValueError('Release checksum mismatch: ' + name)
         verified[name] = data
-    lock = {k: manifest[k] for k in ['name', 'version', 'api', 'sdk']}
+    lock = {k: manifest[k] for k in ['name', 'version', 'api', 'sdk', 'sharedNative']}
+    if revision:
+        if len(revision)!=40 or any(c not in '0123456789abcdef' for c in revision):raise ValueError('SDK revision must be a full commit SHA')
+        lock['sdk']=dict(lock['sdk'],ref=revision)
     lock['sha256'] = {}
     for name, target in targets.items():
         path = consumer / target
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(verified[name])
         lock['sha256'][target] = manifest['sha256'][name]
+    metadata=consumer/'payload.json'
+    if metadata.is_file():
+        payload=json.loads(metadata.read_text())
+        cap=payload.get('extensions',{}).get('nativeUi')
+        if cap and cap.get('library')==manifest['name'] and cap.get('api')==manifest['api']:
+            cap['version']=manifest['version']
+            metadata.write_text(json.dumps(payload,indent=2)+'\n')
+    upstream=consumer/'third_party/moonlight-nx2/SOURCE.json'
+    if upstream.is_file():
+        snapshot=json.loads(upstream.read_text())
+        if snapshot.get('sharedSDK',{}).get('repository')==manifest['sdk']['repository']:
+            snapshot['sharedSDK']['version']=manifest['version']
+            upstream.write_text(json.dumps(snapshot,indent=2)+'\n')
     (consumer / 'civapps-native-ui.lock.json').write_text(json.dumps(lock, indent=2) + '\n')
     print('Pinned', manifest['name'], manifest['version'], 'in', consumer)
 
@@ -144,7 +193,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--install', type=Path, action='append', default=[])
     parser.add_argument('--from-release', type=Path, help='Install an already extracted release directory without a source build')
+    parser.add_argument('--revision', help='Exact SDK commit SHA to record in consumer provenance')
     args = parser.parse_args()
     release = args.from_release or build()
     for consumer in args.install:
-        install(release, consumer)
+        install(release, consumer, args.revision)

@@ -38,5 +38,5 @@
    var out="";for(var b of this)out+=String.fromCharCode(b);return out;
   }
  }
- g.CivNanoVGBuffer=Bytes;
+ g.CivNanoVGBuffer=g.CivSDKBytes=Bytes;
 })(typeof window!=="undefined"?window:globalThis);

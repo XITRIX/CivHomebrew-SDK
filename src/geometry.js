@@ -39,6 +39,16 @@
    if(!encoded)throw Error('Prototype image must be bundled or a PNG data URL: '+base);
    var decoded=decode(encoded),id=withBytes(decoded,function(p){return m._civ_image(p,decoded.length);});if(!id)throw Error('NanoVG PNG rejected');images.set(source,id);return id;
   }
+  function pixels(width,height,initial){
+   var length=width*height*4;
+   if(closed||!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>1920||height>1080||!(initial instanceof Uint8Array)||initial.length!==length)throw Error('Invalid RGBA image');
+   var id=withBytes(initial,function(p){return m._civ_rgba(width,height,p);});
+   if(!id)throw Error('NanoVG RGBA image rejected');var source='civapps-pixels:'+id;images.set(source,id);
+   return {source:source,update:function(bytes){
+    if(closed||!(bytes instanceof Uint8Array)||bytes.length!==length)throw Error('Invalid RGBA frame');
+    withBytes(bytes,function(p){m._civ_update_image(id,p);});
+   }};
+  }
   function buildCommand(c,width,height){
    m._civ_begin(width,height);m._civ_clip(c.clip[0],c.clip[1],Math.max(0,c.clip[2]-c.clip[0]),Math.max(0,c.clip[3]-c.clip[1]));
    if(c.color)m._civ_color.apply(null,c.color);
@@ -106,7 +116,7 @@
    stats.geometryBytes=cacheBytes;stats.preparedBytes=preparedBytes;stats.preparedHit=preparedHit;stats.textureGeneration=generation;stats.inputBytes=data.byteLength;
    return {data:data,width:scene.width,height:scene.height,draws:nd,triangles:nt,generation:generation,revision:++revision,geometryId:retained,drawData:retained.draws,triData:retained.tris};
   }
-  return {build:build,measure:measure,metrics:metrics,stats:stats,module:m,textures:textures,
+  return {build:build,pixels:pixels,measure:measure,metrics:metrics,stats:stats,module:m,textures:textures,
    close:function(){if(closed)return;closed=true;m._civ_close();fontPointers.forEach(m._free);cache.clear();prepared.clear();arena=null;measureCache.clear();textures.clear();images.clear();}};
  }
  g.CivNanoVGGeometry={create:create,decode:decode};

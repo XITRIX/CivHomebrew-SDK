@@ -1,12 +1,12 @@
 {
   "name": "civhomebrew-sdk",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "CivHomebrew SDK: shared native UI, NanoVG toolchain and host validation for CivApps",
   "license": "GPL-3.0-or-later",
   "scripts": {
     "build": "python3 -B tools/build.py",
     "release": "python3 -B tools/release.py",
-    "test": "node --test tests/contracts.cjs tests/core.cjs tests/native.cjs && python3 -B tests/test_release.py",
+    "test": "node --test tests/contracts.cjs tests/core.cjs tests/native.cjs tests/controller.cjs tests/transfer.cjs && node tests/stack.cjs && python3 -B tests/test_release.py",
     "test:browser": "node tests/browser.cjs",
     "test:vulkan": "node testing/vulkan.cjs"
   },

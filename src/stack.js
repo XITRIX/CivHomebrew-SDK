@@ -67,5 +67,5 @@
             stack:{allocationBytes:allocationBytes,downwardBytes:pivot,chainUpwardBytes:allocationBytes-pivot-16,sourceFNV1a32:fingerprint.toString(16)}
         };
     }
-    g.CivNanoVGStack={create:create};
+    g.CivNanoVGStack=g.CivSDKStack={create:create};
 })(typeof window!=="undefined"?window:globalThis);

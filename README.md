@@ -1,15 +1,44 @@
 # CivHomebrew-SDK
 
-SDK version **1.0.0**, native UI API **1**. A shared NanoVG renderer for CivApps,
+SDK version **1.1.0**, native UI API **1**. A shared NanoVG renderer for CivApps,
 with retained geometry/fonts, native Vulkan rendering, a browser WebGL oracle,
 serialized foreground view leases and an exclusive video surface lease.
 
 Source repository: [XITRIX/CivHomebrew-SDK](https://github.com/XITRIX/CivHomebrew-SDK).
 
-The SDK initially provides the `civapps-native-ui` module and its complete
-NanoVG toolchain and host tests. It has no dependency on either application
-checkout. Moonlight and CivHomebrew vendor the same immutable SDK release and
+The SDK provides a lightweight platform core, the `civapps-native-ui` renderer,
+its complete NanoVG toolchain, packaging tools and standalone host tests. It has no dependency on either application
+checkout. Launcher, Hello CivHomebrew, Moonlight and Doom vendor the same immutable SDK release and
 build offline without this checkout.
+
+## Shared modules and consumers
+
+- `civhomebrew-sdk.js`: checked SDK symbol resolution, external-buffer copies,
+  private native stacks, Npad/browser controller sampling and vibration, app view
+  binding and a reusable RGBA framebuffer API. The resident boot/core use this
+  lightweight artifact without initializing graphics.
+- `civapps-native-ui.js`: the same core plus NanoVG geometry/fonts, the shared
+  Vulkan helpers/context, shaders, browser oracle and serialized view leases.
+- `tooling/`: the standalone `.civapp` packager, bounded raw loader sender and
+  classic-JS module compiler. Consumers pin these tools with the runtime.
+
+Launcher owns catalog/install/FTP, terminal discovery and app transitions.
+Hello demonstrates SDK app/view/input use. Moonlight owns Sunshine, codecs,
+stream scheduling and host/settings storage. Doom owns its engine, WADs, save
+formats, audio mixer and game controls; its UI and 320x200 framebuffer use the
+SDK's existing display. No game assets are included in the SDK.
+
+`CivHomebrewSDK` is the public platform entry point (`native`, `graphics`,
+`bytes`, `transfer`, `stack`, `controller`, `app`, `framebuffer`, `nativeUI`,
+`graphicsModules`). App adapters contain policy and protocol glue; shared
+implementations and regression oracles are maintained here.
+
+The SDK core normally rejects mixed versions. The resident core builder may
+explicitly replace a bootstrap core before any native UI backend or graphics
+owner exists, using its guarded bootstrap handoff. This lets a cold core update
+upgrade SDK fixes without trapping it on an older bootstrap version. Apps cannot
+replace an already initialized renderer. New native renderer versions require
+all matching app pins and a Civ VII restart.
 
 ## Runtime contract
 
@@ -31,6 +60,17 @@ they must not create a second owner when it is missing. `sessions.pending`
 exposes initialization in progress. The resident owns `session.close()`.
 Native presentation resources remain retained until process exit, including
 after session close; native owner recreation is deliberately rejected.
+
+`CivHomebrewSDK.app.mount(root, options)` borrows the existing view and owns
+only that lease. It permits DOM preview without graphics and refuses to start a
+second native session under a resident that has no compatible owner.
+
+`CivHomebrewSDK.framebuffer.create({session, view, canvas, width, height})`
+adds an RGBA pixel source to a DOM canvas. `present(bytes)` uploads a complete
+frame and forces a redraw even when the UI geometry is unchanged. `close()`
+releases the exclusive lease. Pixel textures use nearest sampling; fonts and
+normal PNGs keep their existing filtering. Up to eight retained dimension slots
+share an 8 MiB budget per session, so repeated Doom starts reuse one slot.
 
 `session.renderer.bindSurface(callback)` exclusively lends completed RGBA GPU
 output to a video presenter. Its returned lease releases only that surface.
@@ -58,7 +98,7 @@ mix renderer releases in one process.
 Moonlight declares:
 
 ```json
-{"extensions":{"nativeUi":{"api":1,"library":"civapps-native-ui","version":"1.0.0"}}}
+{"extensions":{"nativeUi":{"api":1,"library":"civapps-native-ui","version":"1.1.0"}}}
 ```
 
 ## Build and test
@@ -104,7 +144,7 @@ bytes is rejected. `vendor/manifest.json` records compiler and native inputs.
 From the library checkout, install the same release in both consumers:
 
 ```sh
-python3 tools/release.py --install /path/to/Moonlight --install /path/to/CivHomebrew
+python3 tools/release.py --install /path/to/Moonlight --install /path/to/CivHomebrew --install /path/to/CivHomebrew/examples/hello --install /path/to/Doom --revision FULL_COMMIT_SHA
 ```
 
 The binary archive includes `install.py`; from its extracted directory run
@@ -115,8 +155,9 @@ An already extracted release can also be installed from a checkout with
 This validates all release files before changing a consumer. Each app commits
 `civapps-native-ui.lock.json`, `app/vendor/native-ui-runtime.js`, its NOTICE,
 `tools/civapps_native_ui.py` and `tools/civapps-native-ui/`. The lock pins exact hashes and version; builds
-verify it without reading this checkout. Consumers must also update declared
-`nativeUi.version` capabilities when upgrading. Never edit a vendored bundle.
+verify it without reading this checkout. The installer updates matching declared `nativeUi.version` capabilities and
+records `--revision` as immutable source provenance. Shared native module
+fingerprints remain checked against streaming extension requirements. Never edit a vendored bundle.
 
 Run each consumer's package, browser/lifecycle and native host GPU checks after
 an upgrade. Deployments and console roundtrips are separate validation steps.

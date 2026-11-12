@@ -1,4 +1,4 @@
-/* NanoVG geometry backend for the opt-in CivHomebrew Vulkan prototype.
+/* NanoVG geometry backend for the shared CivHomebrew SDK.
  * This is CPU path/font preparation, not a software framebuffer renderer.
  * Packed records are consumed by the same shader in Vulkan and browser QA. */
 #include <emscripten.h>
@@ -18,7 +18,7 @@ EM_JS(void, texture, (int op,int id,int w,int h,int type,const unsigned char *da
 });
 static int create(void *u){return 1;}
 static int createTexture(void *u,int type,int w,int h,int flags,const unsigned char *data){
-  int id=++nextTexture;texture(0,id,w,h,type,data);return id;
+  int id=++nextTexture;texture(0,id,w,h,type==NVG_TEXTURE_RGBA&&(flags&NVG_IMAGE_NEAREST)?3:type,data);return id;
 }
 static int deleteTexture(void *u,int id){texture(2,id,0,0,0,0);return 1;}
 /* Fontstash supplies the full atlas even for a dirty rectangle. Upload snapshots
@@ -78,6 +78,8 @@ int civ_init(void){
 }
 int civ_font(unsigned char *data,int length,int bold){return nvgCreateFontMem(vg,bold==2?"mono":bold?"bold":"regular",data,length,0);}
 int civ_image(unsigned char *data,int length){return nvgCreateImageMem(vg,0,data,length);}
+int civ_rgba(int width,int height,unsigned char *data){return nvgCreateImageRGBA(vg,width,height,NVG_IMAGE_NEAREST,data);}
+void civ_update_image(int image,unsigned char *data){nvgUpdateImage(vg,image,data);}
 void civ_begin(int width,int height){ndraws=ntris=failed=0;nvgBeginFrame(vg,(float)width,(float)height,1);}
 void civ_clip(float x,float y,float w,float h){nvgScissor(vg,x,y,w,h);}
 void civ_color(float r,float g,float b,float a){nvgFillColor(vg,nvgRGBAf(r,g,b,a));}

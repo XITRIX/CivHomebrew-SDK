@@ -1,6 +1,6 @@
-# Shared CivApps renderer
+# CivHomebrew SDK
 
-Use the civswitch-development skill for renderer/native/lifecycle work.
+Use the civswitch-development skill for platform/renderer/native/lifecycle work.
 This project must build independently of every app checkout. Never import
 application storage, FTP, streaming, terminal discovery or Launcher policy.
 Keep the checked native ABI and process-wide ownership guards intact.

@@ -3,7 +3,8 @@
  * No socket or PC RPC: the async plan interface executes entirely on console. */
 (function(g){
  "use strict";
- function create(){
+ function create(options){
+  options=options||{};var modules=options.modules||g.CivNanoVGModules,refreshState=options.refreshState||{};
   if(!g.CivNanoVGStack)throw Error("Native stack helper missing");
   var stack=g.CivNanoVGStack.create({driver:true});
   var queryInfo=malloc(80),moduleCache=Object.create(null),allocations=new Map(),closed=false;
@@ -115,12 +116,17 @@
   function resolve(name){
    if(!graphics)graphics=discover();
    var pointer=symbol(graphics,name,false);range(pointer,8,5);
-   var table=g.CivNanoVGModules&&g.CivNanoVGModules.compatTable;
+   var table=modules&&modules.compatTable;
    var entry=table&&(table.functions[name]||table.unnamed[name]);
    if(!entry||pointer!==graphics.base+BigInt(entry.offset))throw Error("Unknown native function: "+name);
    verify(pointer,entry.hex);return Number(pointer);
   }
 
+  function sdkResolve(name){
+   if(/vi.*(?:SetContentVisibility|SetLayerVisibility)/.test(name))throw Error('Unqualified display visibility ABI; a setter probe crashed Civ VII');
+   var p=name==='memcpy'?memcpy_addr:(options.resolveSdk||g.CivSDKNative.create().resolveNativeSymbol)(name);
+   verify(p,readMemory(p,16).toString('hex'));return Number(p);
+  }
   function integer(value,min,max){if(!Number.isSafeInteger(value)||value<min||value>max)throw Error("Native integer bounds rejected");return value;}
   function address(value){var p=BigInt(value);if(p<0x1000n||p>=0x8000000000n)throw Error("Native pointer rejected");return p;}
   var native={address:address,integer:integer,argument:function(v){return BigInt.asUintN(64,BigInt(v));},
@@ -131,12 +137,12 @@
    allocate:async function(bytes,options){return allocate(bytes,options);},release:async function(p){release(p);},
    read:async function(p,n){return readMemory(p,n);},write:async function(p,b){writeMemory(p,b);},
    callAddress:async function(p,args){return {result:nativeCall(BigInt(p),...(args||[]).map(BigInt))};},
-   callPlan:async function(plan){return g.CivNanoVGModules.callPlan.runCallPlan(native,plan);},
+   callPlan:async function(plan){return modules.callPlan.runCallPlan(native,plan);},
    request:async function(r){
     if(r.command==="module-probe"){
      if(r.name!=="nnCompat")throw Error("Unsupported native module");
      if(!graphics)graphics=discover();
-     if(!modInfo)modInfo=g.CivNanoVGModules.compat.moduleTables(function(off,n){return readMemory(graphics.base+BigInt(off),n);},g.CivNanoVGModules.ring.nativeChecksum);
+     if(!modInfo)modInfo=modules.compat.moduleTables(function(off,n){return readMemory(graphics.base+BigInt(off),n);},modules.ring.nativeChecksum);
      return Object.assign({base:"0x"+graphics.base.toString(16)},modInfo);
     }
     if(r.command==="verify-function"){verify(r.address,r.hex);return {verified:true};}
@@ -145,14 +151,14 @@
     }
     if(r.command==="call-plan")return rpc.callPlan(r);
     if(r.command==="refresh-rate"){
-     var state=g.__civNanoVGRefreshState||(g.__civNanoVGRefreshState={});
-     return g.CivNanoVGModules.refreshRecord.refreshRateCommand({state:state,runPlan:function(plan){return g.CivNanoVGModules.callPlan.runCallPlan(native,plan);}},r);
+     var state=refreshState;
+     return modules.refreshRecord.refreshRateCommand({state:state,runPlan:function(plan){return modules.callPlan.runCallPlan(native,plan);}},r);
     }
     if(r.command==="read")return {hex:readMemory(r.address,r.length).toString("hex")};
     if(r.command==="batch")return {replies:await Promise.all(r.commands.map(rpc.request))};
     throw Error("Unsupported local native command: "+r.command);
    }};
-  var context={rpc:rpc,native:native,resolve:resolve,allocate:allocate,release:release,
+  var context={rpc:rpc,native:native,resolve:resolve,sdkResolve:sdkResolve,allocate:allocate,release:release,
    read:readMemory,write:writeMemory,call:nativeCall,heapAddress:heapAddress,
    rawCall:function(p,args){return stack.call(BigInt(p),args.map(BigInt));},
    inspect:async function(){var info=await rpc.request({command:"module-probe",name:"nnCompat"});var required=["vkCreateViSurfaceNN","vkCreateSwapchainKHR","vkCmdBeginRendering","vkCreateGraphicsPipelines","_ZN2nn2vi5Layer4OpenEPKNS0_21LayerCreationSettingsEPNS0_7DisplayEPKc"];for(var name of required)resolve(name);return {module:info,functions:required.length,viewport:{width:g.innerWidth,height:g.innerHeight},stack:stack.stack};},
@@ -170,5 +176,5 @@
    close:function(){if(closed)return;if(allocations.size)throw Error("Native allocations remain owned");free(queryInfo);queryInfo=0n;stack.close();closed=true;rpc.connected=false;}};
   rpc.context=context;return context;
  }
- g.CivNanoVGNative={create:create};
+ g.CivNanoVGNative=g.CivSDKGraphics={create:create};
 })(typeof window!=="undefined"?window:globalThis);
