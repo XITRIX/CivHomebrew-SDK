@@ -1,0 +1,33 @@
+#version 450
+layout(local_size_x=64) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint data[];};
+layout(set=0,binding=2,std430) buffer Bins {uint bins[];};
+const uint CAP=128u,TRIS=512u,STRIDE=1u+CAP*3u+TRIS;
+vec2 xy(uint t){return uintBitsToFloat(uvec2(data[t],data[t+1u]));}
+void main(){
+ uint tile=gl_GlobalInvocationID.x,cols=data[10],rows=data[11];if(tile>=cols*rows)return;
+ // Conservative bounds include the subpixel jitter used by the raster oracle.
+ vec2 lo=vec2(tile%cols,tile/cols)*32.-.001,hi=lo+32.002;
+ uint count=0u,used=0u,at=data[9]+tile*STRIDE;
+ for(uint i=0u;i<data[2];i++){
+  uint d=data[4]+i*32u;vec4 b=uintBitsToFloat(uvec4(data[d],data[d+1],data[d+2],data[d+3]));
+  vec4 c=uintBitsToFloat(uvec4(data[d+12],data[d+13],data[d+14],data[d+15]));b=vec4(max(b.xy,c.xy),min(b.zw,c.zw));
+  if(b.x>=hi.x||b.y>=hi.y||b.z<=lo.x||b.w<=lo.y)continue;
+  if(uintBitsToFloat(data[d+29])==1.&&uintBitsToFloat(data[d+7])==1.){
+   vec2 innerLo=max(xy(d+25u),c.xy),innerHi=min(xy(d+27u),c.zw);
+   if(all(lessThanEqual(innerLo,lo))&&all(greaterThanEqual(innerHi,hi))){count=0u;used=0u;}
+  }
+  uint first=uint(uintBitsToFloat(data[d+8])),n=uint(uintBitsToFloat(data[d+9])),start=used;
+  for(uint j=0u;j<n;j++){
+   uint t=data[5]+(first+j)*16u;vec2 offset=xy(d+30u),a=xy(t)+offset,v=xy(t+4u)+offset,w=xy(t+8u)+offset;
+   vec2 low=min(a,min(v,w)),high=max(a,max(v,w));
+   if(low.x>hi.x||low.y>hi.y||high.x<lo.x||high.y<lo.y)continue;
+   if(used<TRIS)bins[at+1u+CAP*3u+used]=first+j;used++;
+  }
+  if(used==start)continue;
+  if(count<CAP){uint rec=at+1u+count*3u;bins[rec]=i;bins[rec+1u]=start;bins[rec+2u]=used-start;}count++;
+ }
+ bins[at]=min(count,CAP);
+ // Neither capacity overflow nor an incomplete image may be published.
+ if(count>CAP||used>TRIS)atomicOr(bins[data[12]],1u);
+}

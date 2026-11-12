@@ -1,0 +1,56 @@
+{
+  "fsCommit": {
+    "symbol": "_ZN2nn2fs6CommitEPKc",
+    "offset": 687584,
+    "size": 12,
+    "hex": "214100f021241a9102000014"
+  },
+  "fsOpen": {
+    "symbol": "_ZN2nn2fs8OpenFileEPNS0_10FileHandleEPKci",
+    "offset": 686240,
+    "size": 548,
+    "hex": "ff8301d1fd7b02a9f85f03a9f65704a9f44f05a9fd830091f503022af60301aa"
+  },
+  "fsRead": {
+    "symbol": "_ZN2nn2fs8ReadFileENS0_10FileHandleElPvm",
+    "offset": 678896,
+    "size": 240,
+    "hex": "ff0301d1fd7b01a9f51300f9f44f03a9fd430091f40303aae30302aabfc31fb8"
+  },
+  "fsWrite": {
+    "symbol": "_ZN2nn2fs9WriteFileENS0_10FileHandleElPKvmRKNS0_11WriteOptionE",
+    "offset": 679424,
+    "size": 300,
+    "hex": "ff4301d1fd7b01a9f85f02a9f65703a9f44f04a9fd430091f70304aaf40303aa"
+  },
+  "fsSize": {
+    "symbol": "_ZN2nn2fs11GetFileSizeEPlNS0_10FileHandleE",
+    "offset": 680224,
+    "size": 264,
+    "hex": "fd7bbca9f70b00f9f65702a9f44f03a9fd030091f40301aaf60300aac1061594"
+  },
+  "fsCreate": {
+    "symbol": "_ZN2nn2fs10CreateFileEPKcl",
+    "offset": 681728,
+    "size": 8,
+    "hex": "e2031f2ab7061514"
+  },
+  "fsClose": {
+    "symbol": "_ZN2nn2fs9CloseFileENS0_10FileHandleE",
+    "offset": 678512,
+    "size": 140,
+    "hex": "fd7bbea9f44f01a9fd030091f30300aa70081594e0020036e00313aa71081594"
+  },
+  "fsResize": {
+    "symbol": "_ZN2nn2fs11SetFileSizeENS0_10FileHandleEl",
+    "offset": 679968,
+    "size": 252,
+    "hex": "fd7bbca9f70b00f9f65702a9f44f03a9fd030091f40301aaf50300aa01071594"
+  },
+  "fsFlush": {
+    "symbol": "_ZN2nn2fs9FlushFileENS0_10FileHandleE",
+    "offset": 679728,
+    "size": 236,
+    "hex": "ff0301d1fd7b01a9f65702a9f44f03a9fd430091f40300aa3e071594c0030036"
+  }
+}

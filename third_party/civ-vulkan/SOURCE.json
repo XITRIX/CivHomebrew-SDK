@@ -1,0 +1,16 @@
+{
+  "source": "https://gitlab.com/Azkali/moonlight-nx2",
+  "provenance": "Reviewed NS2-experiments snapshot, 2026-11-11; Switch 2 nnCompat cf649bbd only",
+  "sha256": {
+    "src/streamer/civ7/display.js": "0299230e6a740efa75a6d836861fe0aae28904cb541b0f8d7397071808ad4c7c",
+    "src/streamer/civ7/call-plan.js": "d7cd8cde1f857749ac2ec373ed56a7fbcb2adcec9f1ae0b7f97267e22ff989dd",
+    "src/streamer/civ7/pipelines.js": "7f38212d53bc0cc6688c78f24b6af68628439622409159c293fd7e2536198b4f",
+    "src/streamer/civ7/compat.js": "6d44809d6b9a55bb3e62052de22fd8fca902d3c0707b9cc677f33d06b9d049a8",
+    "src/streamer/civ7/refresh-rate.js": "da30d63d418725c89831e46340fffcc2101a53d1330e7e19c08c85d9afe6ab25",
+    "src/streamer/civ7/refresh-rate-record.js": "912eba37e8e1cfe0f26b317ad69b5c27e4b8f7e35b183864fc9fb47b5261cd5c",
+    "src/streamer/shared/ring.js": "62f3eddd217fa0756a205e5442963769221f23416843cd4b834b8e1f3634d063",
+    "src/streamer/civ7/compat-functions.json": "61dea743dfdf7ff5fddc069e68a824658b1a69e876acac596701b7b2465e9517",
+    "src/streamer/civ7/filesystem-functions.json": "86271fd773dbe780ebd4180ac7d18c604bba60b06177cfc703346946967fb0a4",
+    "LICENSE": "d3403d44a052f4a6c29418dabee48cefcb1e54fbd62579bbc7533863eb2e4813"
+  }
+}

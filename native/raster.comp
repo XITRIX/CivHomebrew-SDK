@@ -1,0 +1,11 @@
+#version 450
+layout(local_size_x=8,local_size_y=8) in;
+layout(set=0,binding=0,std430) readonly buffer Input {uint data[];};
+layout(set=0,binding=1,std430) writeonly buffer Output {uint pixels[];};
+layout(set=0,binding=2,std430) readonly buffer Bins {uint bins[];};
+#define NATIVE_BINS
+const int BIN_CAPACITY=128,BIN_STRIDE=897;
+uint word(int i){return data[i];}
+uint bin(int i){return bins[data[9]+uint(i)];}
+/*COMMON*/
+void main(){uvec2 p=gl_GlobalInvocationID.xy;if(p.x>=data[0]||p.y>=data[1])return;pixels[p.y*data[0]+p.x]=packUnorm4x8(raster(vec2(p)+.5));}

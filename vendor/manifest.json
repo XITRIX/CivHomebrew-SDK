@@ -1,0 +1,28 @@
+{
+  "transforms": {
+    "monoFractionalAdvance": 2
+  },
+  "compiler": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 3.1.74 (1092ec30a3fb1d46b1782ff1b4db5094d3d06ae5)",
+  "nanovg": "ce3bf745eb2d2dbc14a50bf2446783f691ac4353",
+  "sha256": {
+    "civ-vulkan.js": "80f3f2e1932e6e183db0fc7ae9918638ac2c7d236edc03be97c7939ef42de132",
+    "nanovg-assets.js": "3cb15b5b37c45eb0bcf61b8248b2ee6078fbda2af8dea66fc84a89c02a8da99b",
+    "nanovg-shaders.js": "69d8649a0d493bef7e2f1f158e13bdff376351805fb3f89357c0d8d6f8c22236",
+    "nanovg.js": "3ad971ef188b7412c6a5af0f25af0e2ddf1f08e81023e487ea721270c40b6679"
+  },
+  "inputs": {
+    "assets/button-a.png": "6c8aacb0fcb7b697b54dbffe130c012628b7dc6c36894fcc52b72e2fd4dede8e",
+    "assets/button-b.png": "ce7a124ab883cf5636a43cda26fee979e039ca28640417847bfdec43e58a84e7",
+    "assets/button-minus.png": "5e967dbdbf846e5084c981ffff02f62a78f26c9b1aeff5d9572cc81f8680da58",
+    "assets/button-x.png": "685ceaf173a95a13b7393c3a5f5a8a0a081151e1d818073de8428edf7df8dbd9",
+    "assets/button-y.png": "f2f8366cb1a4f9e43a3ceedb6deb90e8b77525db3f3ae3c8e2b111c529a76554",
+    "native/bin.comp": "8ba1326752c117a97a869fd764498847dd5ac93dfb6f3fb00373de4930ecdd50",
+    "native/capture.c": "13a16773931f2f4cd7391939c18c6eb133a307ac09fc93bc036b86a024b10139",
+    "native/present.frag": "a98c67889852d50e010c5c66d8c2124e0442e883a8650cfd08fdf6a5dec83311",
+    "native/present.vert": "c336e5a980a489b98c153134c6d26344269784316d5275aea348f94e42e9b4ca",
+    "native/raster.comp": "9d06332e8aac84ed61e5b1d14919b70547ff8930fb7e1531b440d7d68a46298f",
+    "native/raster.glsl": "b80e323e38a695ea4d295ec20b400761d3eb8dee82881c04c79a8002b70c6d5b",
+    "tools/build-vulkan.py": "abdc2a72158f0b7edae94ffdbd721a01e03f1157efb97e2cf8c4476b1db14e08",
+    "tools/build.py": "d3c5abbe500fa22c9357c0e29e1e5dd404e1e9a333c396b8de0eedb3905db897"
+  }
+}

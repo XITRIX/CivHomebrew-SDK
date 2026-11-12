@@ -1,0 +1,800 @@
+{
+  "module": {
+    "name": "nnCompat",
+    "hash": "cf649bbd",
+    "imageSize": 227914032,
+    "symbols": 4241,
+    "section": 2
+  },
+  "functions": {
+    "_ZN2nn2vi12CloseDisplayEPNS0_7DisplayE": {
+      "symbol": "_ZN2nn2vi12CloseDisplayEPNS0_7DisplayE",
+      "offset": 2480832,
+      "size": 8,
+      "hex": "e1031f2a23d7a514"
+    },
+    "_ZN2nn2vi18OpenDefaultDisplayEPPNS0_7DisplayE": {
+      "symbol": "_ZN2nn2vi18OpenDefaultDisplayEPPNS0_7DisplayE",
+      "offset": 2480608,
+      "size": 104,
+      "hex": "7f2303d5fd7bbea9f44f01a9fd030091f30300aa1f0000f9c07e019000f43191"
+    },
+    "_ZN2nn2vi21LayerCreationSettingsC1Eii": {
+      "symbol": "_ZN2nn2vi21LayerCreationSettingsC1Eii",
+      "offset": 2469456,
+      "size": 16,
+      "hex": "4800805201080029080800b9c0035fd6"
+    },
+    "_ZN2nn2vi28SetLayerExtendedSwapIntervalEPNS0_5LayerEii": {
+      "symbol": "_ZN2nn2vi28SetLayerExtendedSwapIntervalEPNS0_5LayerEii",
+      "offset": 2481616,
+      "size": 4,
+      "hex": "b4d6a514"
+    },
+    "_ZN2nn2vi30ClearLayerExtendedSwapIntervalEPNS0_5LayerE": {
+      "symbol": "_ZN2nn2vi30ClearLayerExtendedSwapIntervalEPNS0_5LayerE",
+      "offset": 2481632,
+      "size": 4,
+      "hex": "b4d6a514"
+    },
+    "_ZN2nn2vi5Layer15GetNativeWindowEv": {
+      "symbol": "_ZN2nn2vi5Layer15GetNativeWindowEv",
+      "offset": 2479440,
+      "size": 8,
+      "hex": "00a0129157d8a514"
+    },
+    "_ZN2nn2vi5Layer32SetLayerNextExtendedSwapIntervalEii": {
+      "symbol": "_ZN2nn2vi5Layer32SetLayerNextExtendedSwapIntervalEii",
+      "offset": 2479088,
+      "size": 8,
+      "hex": "002000912fd8a514"
+    },
+    "_ZN2nn2vi5Layer34ClearLayerNextExtendedSwapIntervalEv": {
+      "symbol": "_ZN2nn2vi5Layer34ClearLayerNextExtendedSwapIntervalEv",
+      "offset": 2479104,
+      "size": 8,
+      "hex": "002000912fd8a514"
+    },
+    "_ZN2nn2vi5Layer4OpenEPKNS0_21LayerCreationSettingsEPNS0_7DisplayEPKc": {
+      "symbol": "_ZN2nn2vi5Layer4OpenEPKNS0_21LayerCreationSettingsEPNS0_7DisplayEPKc",
+      "offset": 2478608,
+      "size": 264,
+      "hex": "7f2303d5fd7bbda9f65701a9f44f02a9fd030091f50303aaf60302aaf40301aa"
+    },
+    "_ZN2nn2vi5Layer5CloseEb": {
+      "symbol": "_ZN2nn2vi5Layer5CloseEb",
+      "offset": 2478880,
+      "size": 104,
+      "hex": "7f2303d5fd7bbea9f30b00f9fd030091f30300aa610000376802543948020036"
+    },
+    "_ZN2nn2vi5LayerC1Ev": {
+      "symbol": "_ZN2nn2vi5LayerC1Ev",
+      "offset": 2478496,
+      "size": 100,
+      "hex": "7f2303d5fd7bbea9f30b00f9fd030091c8ee01f0f30300aae10313aa087542f9"
+    },
+    "_ZN2nn2vi6detail13InternalLayer27SetNextExtendedSwapIntervalEii": {
+      "symbol": "_ZN2nn2vi6detail13InternalLayer27SetNextExtendedSwapIntervalEii",
+      "offset": 2470704,
+      "size": 4,
+      "hex": "48ceff17"
+    },
+    "_ZN2nn2vi6detail13InternalLayer29ClearNextExtendedSwapIntervalEv": {
+      "symbol": "_ZN2nn2vi6detail13InternalLayer29ClearNextExtendedSwapIntervalEv",
+      "offset": 2470720,
+      "size": 4,
+      "hex": "4cceff17"
+    },
+    "_ZN5movie12VideoDecoder18GetInputReadyEventEPPN2nn2os15SystemEventTypeE": {
+      "symbol": "_ZN5movie12VideoDecoder18GetInputReadyEventEPPN2nn2os15SystemEventTypeE",
+      "offset": 45731680,
+      "size": 84,
+      "hex": "7f2303d5fd7bbea9f44f01a9fd030091140040f9f30301aa80523d9165835697"
+    },
+    "_ZN5movie12VideoDecoder19GetOutputReadyEventEPPN2nn2os15SystemEventTypeE": {
+      "symbol": "_ZN5movie12VideoDecoder19GetOutputReadyEventEPPN2nn2os15SystemEventTypeE",
+      "offset": 45731776,
+      "size": 84,
+      "hex": "7f2303d5fd7bbea9f44f01a9fd030091140040f9f30301aa80523d914d835697"
+    },
+    "_ZN5movie34CreateH264DecoderConfigurationDataEPKhmS1_mPNS_9MediaDataE": {
+      "symbol": "_ZN5movie34CreateH264DecoderConfigurationDataEPKhmS1_mPNS_9MediaDataE",
+      "offset": 45425088,
+      "size": 736,
+      "hex": "7f2303d5fd7bbaa9fc6f01a9fa6702a9fd030091f85f03a9f65704a9f44f05a9"
+    },
+    "_ZN5movie6Buffer18SetDataAndCapacityEPvm": {
+      "symbol": "_ZN5movie6Buffer18SetDataAndCapacityEPvm",
+      "offset": 45416368,
+      "size": 168,
+      "hex": "7f2303d5fd7bbda9f50b00f9f44f02a9fd030091f40300aa60008052f30302aa"
+    },
+    "_ZN5movie6BufferC1Ev": {
+      "symbol": "_ZN5movie6BufferC1Ev",
+      "offset": 45414064,
+      "size": 132,
+      "hex": "7f2303d5fd7bbea9f30b00f9fd030091f30300aa60008052e1031f2ae2031f2a"
+    },
+    "_ZN5movie6BufferD2Ev": {
+      "symbol": "_ZN5movie6BufferD2Ev",
+      "offset": 45414992,
+      "size": 148,
+      "hex": "7f2303d5fd7bbea9f30b00f9fd030091f30300aa60008052e1031f2ae2031f2a"
+    },
+    "_ZN5movie7Decoder12GetLastErrorEv": {
+      "symbol": "_ZN5movie7Decoder12GetLastErrorEv",
+      "offset": 45465296,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9084940f900013fd6"
+    },
+    "_ZN5movie7Decoder14GetInputBufferEiPNS_6BufferE": {
+      "symbol": "_ZN5movie7Decoder14GetInputBufferEiPNS_6BufferE",
+      "offset": 45465056,
+      "size": 236,
+      "hex": "7f2303d5ffc301d1fd7b04a9f52b00f9f44f06a9fd030191150440f9550400b4"
+    },
+    "_ZN5movie7Decoder15GetOutputBufferEiPNS_6BufferEPNS_9MediaDataE": {
+      "symbol": "_ZN5movie7Decoder15GetOutputBufferEiPNS_6BufferEPNS_9MediaDataE",
+      "offset": 45465360,
+      "size": 416,
+      "hex": "7f2303d5ff0302d1fd7b04a9f72b00f9f65706a9f44f07a9fd030191160440f9"
+    },
+    "_ZN5movie7Decoder15GetOutputFormatEPNS_9MediaDataE": {
+      "symbol": "_ZN5movie7Decoder15GetOutputFormatEPNS_9MediaDataE",
+      "offset": 45464512,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9081940f900013fd6"
+    },
+    "_ZN5movie7Decoder19GetOutputBufferSizeEPiS1_": {
+      "symbol": "_ZN5movie7Decoder19GetOutputBufferSizeEPiS1_",
+      "offset": 45464640,
+      "size": 112,
+      "hex": "7f2303d5fd7bbea9f44f01a9fd030091000440f9400200b4080040f9f30302aa"
+    },
+    "_ZN5movie7Decoder20RegisterClientEventsEPNS_13DecoderEventsE": {
+      "symbol": "_ZN5movie7Decoder20RegisterClientEventsEPNS_13DecoderEventsE",
+      "offset": 45464064,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9081540f900013fd6"
+    },
+    "_ZN5movie7Decoder23AcquireInputBufferIndexEPiS1_": {
+      "symbol": "_ZN5movie7Decoder23AcquireInputBufferIndexEPiS1_",
+      "offset": 45464992,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9082d40f900013fd6"
+    },
+    "_ZN5movie7Decoder24AcquireOutputBufferIndexEPiPlPjS1_": {
+      "symbol": "_ZN5movie7Decoder24AcquireOutputBufferIndexEPiPlPjS1_",
+      "offset": 45464576,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9083940f900013fd6"
+    },
+    "_ZN5movie7Decoder24ReleaseOutputBufferIndexEi": {
+      "symbol": "_ZN5movie7Decoder24ReleaseOutputBufferIndexEi",
+      "offset": 45464448,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9084540f900013fd6"
+    },
+    "_ZN5movie7Decoder24SendInputBufferForDecodeEiiilj": {
+      "symbol": "_ZN5movie7Decoder24SendInputBufferForDecodeEiiilj",
+      "offset": 45464384,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9083540f900013fd6"
+    },
+    "_ZN5movie7Decoder4StopEv": {
+      "symbol": "_ZN5movie7Decoder4StopEv",
+      "offset": 45464192,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9082140f900013fd6"
+    },
+    "_ZN5movie7Decoder5FlushEv": {
+      "symbol": "_ZN5movie7Decoder5FlushEv",
+      "offset": 45464320,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9082940f900013fd6"
+    },
+    "_ZN5movie7Decoder5StartEv": {
+      "symbol": "_ZN5movie7Decoder5StartEv",
+      "offset": 45464128,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9081d40f900013fd6"
+    },
+    "_ZN5movie7Decoder9ConfigureEPNS_9MediaDataE": {
+      "symbol": "_ZN5movie7Decoder9ConfigureEPNS_9MediaDataE",
+      "offset": 45464000,
+      "size": 52,
+      "hex": "000440f9400100b47f2303d5fd7bbfa9fd030091080040f9081140f900013fd6"
+    },
+    "_ZN5movie7DecoderC2ENS_11DecoderTypeENS_19DecoderOutputFormatE": {
+      "symbol": "_ZN5movie7DecoderC2ENS_11DecoderTypeENS_19DecoderOutputFormatE",
+      "offset": 45462512,
+      "size": 76,
+      "hex": "7f2303d5fd7bbda9f50b00f9f44f02a9fd030091f303022af403012af50300aa"
+    },
+    "_ZN5movie7DecoderC2ENS_11DecoderTypeENS_19DecoderOutputFormatENS_11DecoderModeE": {
+      "symbol": "_ZN5movie7DecoderC2ENS_11DecoderTypeENS_19DecoderOutputFormatENS_11DecoderModeE",
+      "offset": 45463632,
+      "size": 80,
+      "hex": "7f2303d5fd7bbda9f65701a9f44f02a9fd030091f303032af403022af503012a"
+    },
+    "_ZN5movie7DecoderD2Ev": {
+      "symbol": "_ZN5movie7DecoderD2Ev",
+      "offset": 45463712,
+      "size": 232,
+      "hex": "7f2303d5ff0302d1fd7b06a9f33b00f9fd830191e8a600b0f3a6009008d142f9"
+    },
+    "_ZN5movie9MediaData8SetInt32EPKci": {
+      "symbol": "_ZN5movie9MediaData8SetInt32EPKci",
+      "offset": 45420112,
+      "size": 16,
+      "hex": "000040f9400000b44aa75917c0035fd6"
+    },
+    "_ZN5movie9MediaDataC2Ev": {
+      "symbol": "_ZN5movie9MediaDataC2Ev",
+      "offset": 45419168,
+      "size": 60,
+      "hex": "7f2303d5fd7bbea9f44f01a9fd030091f30300aa1f0000f900c180522d080094"
+    },
+    "_ZN5movie9MediaDataD2Ev": {
+      "symbol": "_ZN5movie9MediaDataD2Ev",
+      "offset": 45419232,
+      "size": 56,
+      "hex": "7f2303d5fd7bbea9f30b00f9fd030091f30300aacf2a0294680240f9880000b4"
+    },
+    "_ZNK5movie6Buffer4DataEv": {
+      "symbol": "_ZNK5movie6Buffer4DataEv",
+      "offset": 45415408,
+      "size": 132,
+      "hex": "7f2303d5fd7bbea9f30b00f9fd030091f30300aa60008052e1031f2ae2031f2a"
+    },
+    "_ZNK5movie6Buffer4SizeEv": {
+      "symbol": "_ZNK5movie6Buffer4SizeEv",
+      "offset": 45415664,
+      "size": 112,
+      "hex": "7f2303d5fd7bbea9f30b00f9fd030091f30300aa60008052e1031f2ae2031f2a"
+    },
+    "_ZNK5movie6Buffer8CapacityEv": {
+      "symbol": "_ZNK5movie6Buffer8CapacityEv",
+      "offset": 45415552,
+      "size": 112,
+      "hex": "7f2303d5fd7bbea9f30b00f9fd030091f30300aa60008052e1031f2ae2031f2a"
+    },
+    "_ZNK5movie9MediaData10FindBufferEPKcPPNS_6BufferE": {
+      "symbol": "_ZNK5movie9MediaData10FindBufferEPKcPPNS_6BufferE",
+      "offset": 45421488,
+      "size": 108,
+      "hex": "000040f9200300b47f2303d5fd7bbea9f30b00f9fd030091e80301aaa1630091"
+    },
+    "_ZNK5movie9MediaData9FindInt32EPKcPi": {
+      "symbol": "_ZNK5movie9MediaData9FindInt32EPKcPi",
+      "offset": 45420128,
+      "size": 28,
+      "hex": "000040f9a00000b4e80301aae10302aae20308aa7baa5917c0035fd6"
+    },
+    "vkAcquireNextImage2KHR": {
+      "symbol": "vkAcquireNextImage2KHR",
+      "offset": 45720784,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkAllocateCommandBuffers": {
+      "symbol": "vkAllocateCommandBuffers",
+      "offset": 45691104,
+      "size": 188,
+      "hex": "7f2303d5fd7bbda9f50b00f9f44f02a9fd030091600400b4150040f9350400b4"
+    },
+    "vkAllocateDescriptorSets": {
+      "symbol": "vkAllocateDescriptorSets",
+      "offset": 45700912,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkAllocateMemory": {
+      "symbol": "vkAllocateMemory",
+      "offset": 45695536,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkBeginCommandBuffer": {
+      "symbol": "vkBeginCommandBuffer",
+      "offset": 45702064,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkBindBufferMemory": {
+      "symbol": "vkBindBufferMemory",
+      "offset": 45696208,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkBindImageMemory": {
+      "symbol": "vkBindImageMemory",
+      "offset": 45696304,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCmdBeginRendering": {
+      "symbol": "vkCmdBeginRendering",
+      "offset": 45710928,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCmdBindDescriptorSets2": {
+      "symbol": "vkCmdBindDescriptorSets2",
+      "offset": 45715632,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCmdBindPipeline": {
+      "symbol": "vkCmdBindPipeline",
+      "offset": 45702352,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCmdCopyBuffer2": {
+      "symbol": "vkCmdCopyBuffer2",
+      "offset": 45711216,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCmdCopyImageToBuffer2": {
+      "symbol": "vkCmdCopyImageToBuffer2",
+      "offset": 45711504,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCmdDispatch": {
+      "symbol": "vkCmdDispatch",
+      "offset": 45703984,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCmdDraw": {
+      "symbol": "vkCmdDraw",
+      "offset": 45703600,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCmdEndRendering": {
+      "symbol": "vkCmdEndRendering",
+      "offset": 45711600,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCmdExecuteCommands": {
+      "symbol": "vkCmdExecuteCommands",
+      "offset": 45706528,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCmdPipelineBarrier2": {
+      "symbol": "vkCmdPipelineBarrier2",
+      "offset": 45711696,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateBuffer": {
+      "symbol": "vkCreateBuffer",
+      "offset": 45698320,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateBufferView": {
+      "symbol": "vkCreateBufferView",
+      "offset": 45698512,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateCommandPool": {
+      "symbol": "vkCreateCommandPool",
+      "offset": 45701680,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateComputePipelines": {
+      "symbol": "vkCreateComputePipelines",
+      "offset": 45699856,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateDescriptorPool": {
+      "symbol": "vkCreateDescriptorPool",
+      "offset": 45700624,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateDescriptorSetLayout": {
+      "symbol": "vkCreateDescriptorSetLayout",
+      "offset": 45700432,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateDevice": {
+      "symbol": "vkCreateDevice",
+      "offset": 45694384,
+      "size": 188,
+      "hex": "7f2303d5fd7bbca9f70b00f9f65702a9f44f03a9fd030091080840f9a9bd95d2"
+    },
+    "vkCreateFence": {
+      "symbol": "vkCreateFence",
+      "offset": 45696880,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateGraphicsPipelines": {
+      "symbol": "vkCreateGraphicsPipelines",
+      "offset": 45699760,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateImage": {
+      "symbol": "vkCreateImage",
+      "offset": 45698704,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateImageView": {
+      "symbol": "vkCreateImageView",
+      "offset": 45698992,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateInstance": {
+      "symbol": "vkCreateInstance",
+      "offset": 45691712,
+      "size": 1372,
+      "hex": "7f2303d5ff0303d1fd7b06a9fb3b00f9fa6708a9f85f09a9f6570aa9f44f0ba9"
+    },
+    "vkCreatePipelineCache": {
+      "symbol": "vkCreatePipelineCache",
+      "offset": 45699376,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreatePipelineLayout": {
+      "symbol": "vkCreatePipelineLayout",
+      "offset": 45700048,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateSemaphore": {
+      "symbol": "vkCreateSemaphore",
+      "offset": 45697360,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateShaderModule": {
+      "symbol": "vkCreateShaderModule",
+      "offset": 45699184,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkCreateSwapchainKHR": {
+      "symbol": "vkCreateSwapchainKHR",
+      "offset": 45717904,
+      "size": 136,
+      "hex": "7f2303d5fd7bbfa9fd030091e00100b4080040f9a80100b4090140f9aabd95d2"
+    },
+    "vkCreateViSurfaceNN": {
+      "symbol": "vkCreateViSurfaceNN",
+      "offset": 45719488,
+      "size": 108,
+      "hex": "7f2303d5fd7bbda9f50b00f9f44f02a9fd030091f30303aaf40302aaf50301aa"
+    },
+    "vkDestroyBuffer": {
+      "symbol": "vkDestroyBuffer",
+      "offset": 45698416,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyBufferView": {
+      "symbol": "vkDestroyBufferView",
+      "offset": 45698608,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyCommandPool": {
+      "symbol": "vkDestroyCommandPool",
+      "offset": 45701776,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyDescriptorPool": {
+      "symbol": "vkDestroyDescriptorPool",
+      "offset": 45700720,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyDescriptorSetLayout": {
+      "symbol": "vkDestroyDescriptorSetLayout",
+      "offset": 45700528,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyDevice": {
+      "symbol": "vkDestroyDevice",
+      "offset": 45690800,
+      "size": 168,
+      "hex": "7f2303d5fd7bbda9f65701a9f44f02a9fd030091400300b4160040f9f40300aa"
+    },
+    "vkDestroyFence": {
+      "symbol": "vkDestroyFence",
+      "offset": 45696976,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyImage": {
+      "symbol": "vkDestroyImage",
+      "offset": 45698800,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyImageView": {
+      "symbol": "vkDestroyImageView",
+      "offset": 45699088,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyInstance": {
+      "symbol": "vkDestroyInstance",
+      "offset": 45693120,
+      "size": 456,
+      "hex": "7f2303d5fd7bbda9f50b00f9f44f02a9fd030091000c00b4f50300aa20a500b0"
+    },
+    "vkDestroyPipeline": {
+      "symbol": "vkDestroyPipeline",
+      "offset": 45699952,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyPipelineCache": {
+      "symbol": "vkDestroyPipelineCache",
+      "offset": 45699472,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyPipelineLayout": {
+      "symbol": "vkDestroyPipelineLayout",
+      "offset": 45700144,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroySemaphore": {
+      "symbol": "vkDestroySemaphore",
+      "offset": 45697456,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroyShaderModule": {
+      "symbol": "vkDestroyShaderModule",
+      "offset": 45699280,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkDestroySurfaceKHR": {
+      "symbol": "vkDestroySurfaceKHR",
+      "offset": 45716464,
+      "size": 92,
+      "hex": "7f2303d5fd7bbea9f44f01a9fd030091f30302aaf40301aafeccff97400100b4"
+    },
+    "vkDestroySwapchainKHR": {
+      "symbol": "vkDestroySwapchainKHR",
+      "offset": 45718384,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkEndCommandBuffer": {
+      "symbol": "vkEndCommandBuffer",
+      "offset": 45702160,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkEnumeratePhysicalDevices": {
+      "symbol": "vkEnumeratePhysicalDevices",
+      "offset": 45693584,
+      "size": 216,
+      "hex": "7f2303d5fd7bbda9f65701a9f44f02a9fd030091f50300aa20a500b0f30302aa"
+    },
+    "vkFreeMemory": {
+      "symbol": "vkFreeMemory",
+      "offset": 45695632,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkGetBufferMemoryRequirements": {
+      "symbol": "vkGetBufferMemoryRequirements",
+      "offset": 45696400,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkGetDeviceQueue": {
+      "symbol": "vkGetDeviceQueue",
+      "offset": 45690976,
+      "size": 124,
+      "hex": "7f2303d5fd7bbea9f44f01a9fd030091800200b4140040f9540200b4880240f9"
+    },
+    "vkGetImageMemoryRequirements": {
+      "symbol": "vkGetImageMemoryRequirements",
+      "offset": 45696496,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkGetImageSubresourceLayout": {
+      "symbol": "vkGetImageSubresourceLayout",
+      "offset": 45698896,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkGetPhysicalDeviceMemoryProperties": {
+      "symbol": "vkGetPhysicalDeviceMemoryProperties",
+      "offset": 45694288,
+      "size": 92,
+      "hex": "080840f9a9bd95d20942a0f249a0ddf2a915e2f21f0109ebe1000054080c40f9"
+    },
+    "vkGetPhysicalDeviceProperties": {
+      "symbol": "vkGetPhysicalDeviceProperties",
+      "offset": 45694096,
+      "size": 92,
+      "hex": "080840f9a9bd95d20942a0f249a0ddf2a915e2f21f0109ebe1000054080c40f9"
+    },
+    "vkGetPhysicalDeviceQueueFamilyProperties": {
+      "symbol": "vkGetPhysicalDeviceQueueFamilyProperties",
+      "offset": 45694192,
+      "size": 92,
+      "hex": "080840f9a9bd95d20942a0f249a0ddf2a915e2f21f0109ebe1000054080c40f9"
+    },
+    "vkGetPhysicalDeviceSurfaceCapabilitiesKHR": {
+      "symbol": "vkGetPhysicalDeviceSurfaceCapabilitiesKHR",
+      "offset": 45717040,
+      "size": 92,
+      "hex": "080840f9a9bd95d20942a0f249a0ddf2a915e2f21f0109ebe1000054080c40f9"
+    },
+    "vkGetPhysicalDeviceSurfaceFormatsKHR": {
+      "symbol": "vkGetPhysicalDeviceSurfaceFormatsKHR",
+      "offset": 45717328,
+      "size": 92,
+      "hex": "080840f9a9bd95d20942a0f249a0ddf2a915e2f21f0109ebe1000054080c40f9"
+    },
+    "vkGetPhysicalDeviceSurfacePresentModesKHR": {
+      "symbol": "vkGetPhysicalDeviceSurfacePresentModesKHR",
+      "offset": 45717616,
+      "size": 92,
+      "hex": "080840f9a9bd95d20942a0f249a0ddf2a915e2f21f0109ebe1000054080c40f9"
+    },
+    "vkGetPhysicalDeviceSurfaceSupportKHR": {
+      "symbol": "vkGetPhysicalDeviceSurfaceSupportKHR",
+      "offset": 45716752,
+      "size": 92,
+      "hex": "080840f9a9bd95d20942a0f249a0ddf2a915e2f21f0109ebe1000054080c40f9"
+    },
+    "vkGetPipelineCacheData": {
+      "symbol": "vkGetPipelineCacheData",
+      "offset": 45699568,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkGetSwapchainImagesKHR": {
+      "symbol": "vkGetSwapchainImagesKHR",
+      "offset": 45718480,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkMapMemory2": {
+      "symbol": "vkMapMemory2",
+      "offset": 45715440,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkQueuePresentKHR": {
+      "symbol": "vkQueuePresentKHR",
+      "offset": 45718672,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkQueueSubmit": {
+      "symbol": "vkQueueSubmit",
+      "offset": 45695248,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkQueueWaitIdle": {
+      "symbol": "vkQueueWaitIdle",
+      "offset": 45695344,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkResetFences": {
+      "symbol": "vkResetFences",
+      "offset": 45697072,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkUpdateDescriptorSets": {
+      "symbol": "vkUpdateDescriptorSets",
+      "offset": 45701104,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "vkWaitForFences": {
+      "symbol": "vkWaitForFences",
+      "offset": 45697264,
+      "size": 88,
+      "hex": "800100b4080040f9480100b4090140f9aabd95d20a82a0f28aa0ddf2aa15e2f2"
+    },
+    "_ZN2nn2vi12SetLayerCropEPNS0_5LayerEiiii": {
+      "symbol": "_ZN2nn2vi12SetLayerCropEPNS0_5LayerEiiii",
+      "offset": 2481584,
+      "size": 4,
+      "hex": "b8d6a514"
+    },
+    "_ZN2nn2vi5Layer16SetLayerNextCropEtttt": {
+      "symbol": "_ZN2nn2vi5Layer16SetLayerNextCropEtttt",
+      "offset": 2479072,
+      "size": 8,
+      "hex": "002000913bd8a514"
+    },
+    "_ZN2nn2vi6detail13InternalLayer11SetNextCropEtttt": {
+      "symbol": "_ZN2nn2vi6detail13InternalLayer11SetNextCropEtttt",
+      "offset": 2470736,
+      "size": 68,
+      "hex": "7f3c0072400100549f3c00720001005428008052080012390104097902080979"
+    }
+  },
+  "unnamed": {
+    "DisplaySession301": {
+      "offset": 2430064,
+      "size": 204,
+      "hex": "7f2303d5fd7bbca9f70b00f9f65702a9f44f03a9fd030091f40303aaf50302aa"
+    },
+    "DisplaySession354": {
+      "offset": 2430272,
+      "size": 208,
+      "hex": "7f2303d5ff0301d1fd7b01a9f65702a9f44f03a9fd430091f40302aaf50301aa"
+    },
+    "ResultErrorHook": {
+      "offset": 1797744,
+      "size": 40,
+      "hex": "08544092695e90521f0109eb40000054c0035fd67f2303d5fd7bbfa9fd030091"
+    },
+    "PltLayerSetNextSwap": {
+      "offset": 45955232,
+      "size": 16,
+      "hex": "b0a300b0113246f91082319120021fd6"
+    },
+    "PltLayerClearNextSwap": {
+      "offset": 45955248,
+      "size": 16,
+      "hex": "b0a300b0113646f910a2319120021fd6"
+    },
+    "PltInternalSetNextSwap": {
+      "offset": 45954224,
+      "size": 16,
+      "hex": "b0a300b0113645f910a2299120021fd6"
+    },
+    "PltInternalClearNextSwap": {
+      "offset": 45954240,
+      "size": 16,
+      "hex": "b0a300b0113a45f910c2299120021fd6"
+    },
+    "SwapIntervalForwarder": {
+      "offset": 2419792,
+      "size": 32,
+      "hex": "08f0019008210491e303022ae203012ae10300aa04f940f9000140f980001fd6"
+    },
+    "SwapIntervalClearForwarder": {
+      "offset": 2419824,
+      "size": 24,
+      "hex": "08f0019008210491e10300aa02fd40f9000140f940001fd6"
+    },
+    "ExtendedSwapIntervalSetter": {
+      "offset": 2460704,
+      "size": 16,
+      "hex": "20a00091e103022ae203032a05000014"
+    },
+    "ExtendedSwapIntervalClearer": {
+      "offset": 2461072,
+      "size": 12,
+      "hex": "3f8802393fa400b9c0035fd6"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "source": "https://github.com/memononen/nanovg",
+  "commit": "ce3bf745eb2d2dbc14a50bf2446783f691ac4353",
+  "sha256": {
+    "LICENSE.txt": "45185a6680ed83863bef33e1055f9fd76374df4b81c957802c19a286c982dfd2",
+    "Roboto-Bold.ttf": "9287925cae90ac480804094ff0876832065e2db116470da1f524d79ed9c18b70",
+    "Roboto-Regular.ttf": "b2efabca5ea4bc56eea829713706b5cd0788b82aca153bd4adde9b1573933b4f",
+    "fontstash.h": "1d3c974b5cd592157a509330099b86a6b31b49c6a8a5eb8c92ec256f2161af36",
+    "nanovg.c": "d70f33b6decfa0f7606a30c36957a5e7e4e3c8053416649c0686d2a694b855b6",
+    "nanovg.h": "736401d6a8b9cb52eb1e2a43f3103a47c7c5c12558d159ae8740f6f4d4475e22",
+    "stb_image.h": "19e32991baf7fc7e29bad10e83aef9afbbd41b56115b04fed69d3e57d69b383a",
+    "stb_truetype.h": "331e9b1820e5af57c0968c308348112544193f2475310ada8370588c9903ee02",
+    "Roboto-LICENSE.txt": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  }
+}

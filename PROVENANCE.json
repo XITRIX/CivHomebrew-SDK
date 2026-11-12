@@ -1,0 +1,16 @@
+{
+  "origin": "Extracted from NS2-CivHomebrew and NS2-experiments, 2026-11-12",
+  "platform": "Switch 2, Civ VII cartridge 1.0.0; exact native guards retained",
+  "licenseNotes": "Native context/stack adapted from NS2-Doom (GPL-2.0-or-later); Vulkan helper snapshot GPL-3.0. NanoVG/fonts retain their bundled licenses. Controller button artwork originated in CivHomebrew.",
+  "extractedSources": {
+    "app/src/native-ui/bytes.js": "4465fbaff94eb504d440f6d4e326c552accda0e2cbe7773e49e1970e67a6cafd",
+    "app/src/native-ui/context.js": "98fd6cbc8f2b9fd940a03fbb240aecb2b9c9d230c0f2f0143d669f2c43000424",
+    "app/src/native-ui/geometry.js": "d11fe676a31d9917f327aa1d8b5d960327d624bf6318f881c2ff5fdebda6d244",
+    "app/src/native-ui/prototype.js": "1a777cc25326ae5aaa45da89093c8fa979c531d76e82ed0457e3201553c76c03",
+    "app/src/native-ui/scene.js": "07bed0e0f57379d22e23b7579730546d57bf3927885d0fe3c6f3d3c4bcb83886",
+    "app/src/native-ui/session.js": "c4ba1d3d4c113688d60bc05fa5bdc8c71b167a913ba8ec6934b7d877eb2079fc",
+    "app/src/native-ui/stack.js": "1f0e99eb3a338b9af1d30df1a6efb7f745f0b1399e4c879725516fa7b57cba8e",
+    "app/src/native-ui/vulkan.js": "c8fe641ab76f9325a076189ff30fdb4d90578cbc1ee7c982a3ae8ccf7743d5ea",
+    "app/src/native-ui/web.js": "0ec11168c83528607aea23d83f83fc22b49fa26e01e5650746f04e4fbfec6549"
+  }
+}
