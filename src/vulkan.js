@@ -93,7 +93,7 @@
    fw(0x500,4);fw(0x528,1);fp(0x530,frameMemory+0x600);fp(0x608,fence);
    frame.set(frame.subarray(0x300,0x348),0x800);fw(0x828,2);fp(0x830,frameMemory+0x680);fp(0x680,computeCommands[1]);c.write(frameMemory,frame);
    owner.frameMemory=frameMemory;
-   var uploadedGeneration=-1,uploadedPacket=null,uploadedRevision=-1,gpuScenes=new Map(),slotBytes=524288,slotCount=8,header=B.alloc(64),surface=null;
+   var uploadedTextureLayout=null,uploadedGeneration=-1,uploadedPacket=null,uploadedRevision=-1,gpuScenes=new Map(),slotBytes=524288,slotCount=8,header=B.alloc(64),surface=null;
    function submit(command){
     c.native.write64(BigInt(frameMemory+0x600),command);
     call('vkQueueSubmit',[d.queue,1,frameMemory+0x500,fence],true);submitted=true;
@@ -115,7 +115,7 @@
      // Bulk geometry writes, with atlas upload only on a glyph/image change.
      // No JS byte-by-byte comparison or per-pixel loop on ordinary navigation.
      var raw=new Uint8Array(packet.data.buffer,packet.data.byteOffset,packet.data.byteLength);
-     function upload(start,bytes){for(var at=start;at<start+bytes;at+=65536){var end=Math.min(start+bytes,at+65536);c.write(input.mapped+at,raw.subarray(at,end));owner.uploadedBytes+=end-at;}}
+     function upload(start,bytes){if(bytes){c.write(input.mapped+start,raw.subarray(start,start+bytes));owner.uploadedBytes+=bytes;}}
      var changed=uploadedPacket!==packet||uploadedRevision!==packet.revision||packet.revision===undefined,slot=null,cacheHit=false;
      if(changed&&packet.geometryId&&packet.drawData.byteLength+packet.triData.byteLength<=slotBytes){
       slot=gpuScenes.get(packet.geometryId);cacheHit=slot!==undefined;
@@ -125,7 +125,16 @@
       if(!cacheHit){c.write(input.mapped+drawAt,new Uint8Array(packet.drawData.buffer));c.write(input.mapped+triAt,new Uint8Array(packet.triData.buffer));owner.uploadedBytes+=packet.drawData.byteLength+packet.triData.byteLength;}
       header.set(packet.header||raw.subarray(0,64));header.writeUInt32LE(drawAt/4,16);header.writeUInt32LE(triAt/4,20);header.writeUInt32LE(slot*binWords,36);header.writeUInt32LE(binWords*8,48);c.write(input.mapped,header);owner.uploadedBytes+=64;
      }else if(changed){gpuScenes.clear();header.set(raw.subarray(0,64));header.writeUInt32LE(0,36);header.writeUInt32LE(binWords*8,48);c.write(input.mapped,header);owner.uploadedBytes+=64;upload(packet.data[4]*4,packet.draws*128);upload(packet.data[5]*4,packet.triangles*64);}
-     if(uploadedGeneration!==packet.generation){upload(packet.data[6]*4,raw.length-packet.data[6]*4);uploadedGeneration=packet.generation;}
+     if(uploadedGeneration!==packet.generation){
+      if(Number.isSafeInteger(packet.textureLayout)&&packet.textureLayout===uploadedTextureLayout&&packet.generation>=uploadedGeneration&&Array.isArray(packet.texturePatches)){
+       if(packet.texturePatches.length>256)throw Error('Native UI texture patch count');
+       for(var patch of packet.texturePatches){
+        if(!Number.isSafeInteger(patch.revision)||patch.revision<0||patch.revision>packet.generation||!Number.isSafeInteger(patch.offset)||!Number.isSafeInteger(patch.bytes)||patch.offset<packet.data[7]*4||patch.bytes<1||patch.offset+patch.bytes>raw.length)throw Error('Native UI texture patch bounds');
+        if(patch.revision>uploadedGeneration)upload(patch.offset,patch.bytes);
+       }
+      }else upload(packet.data[6]*4,raw.length-packet.data[6]*4);
+      uploadedTextureLayout=packet.textureLayout;uploadedGeneration=packet.generation;
+     }
      var uploadMs=now()-uploadStart,binStart=now(),needsBins=changed&&!cacheHit;
      if(needsBins){
       c.native.write32(BigInt(bins.mapped+binWords*8*4),0n);submit(computeCommands[0]);

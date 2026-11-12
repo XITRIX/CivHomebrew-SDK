@@ -84,3 +84,26 @@ test('text layout fits ellipsis before right/center alignment and allows one CSS
  assert.equal(scene.pixels('1.5rem',18,24),27);assert.equal(scene.pixels('2em',18,24),48);
  assert.deepEqual(Array.from(scene.wrapWords('abc defghijkl',50,measure,true)),['abc','defgh','ijkl']);
 });
+
+test('dynamic pixels preserve atlas buffers, packed layout and geometry across skipped frames',async()=>{
+ const geometry=await load().CivNanoVGGeometry.create(),Bytes=geometry.module.HEAPU8.constructor;
+ const image=geometry.pixels(320,200,new Bytes(256000)),scene={width:1920,height:1080,commands:[
+  {kind:'text',text:'Static HUD',x:10,baseline:25,size:20,bold:0,color:[1,1,1,1],clip:[0,0,1920,1080]},
+  {kind:'image',source:image.source,rect:[0,40,1440,1040],radius:0,alpha:1,clip:[0,0,1920,1080]}]};
+ const first=geometry.build(scene,true),arena=first.data.buffer,identity=first.geometryId,fullPacks=geometry.stats.textureFullPacks;
+ const fonts=[...geometry.textures.values()].filter(t=>t.type===1).map(t=>({t,bytes:t.bytes,copy:Buffer.from(t.bytes)}));assert(fonts.length);
+ const before=Buffer.from(new Uint8Array(first.data.buffer));
+ const bytes=new Bytes(256000);bytes.fill(123);image.update(bytes);image.update(bytes);
+ const next=geometry.build(scene,true);
+ assert.equal(next.data.buffer,arena);assert.equal(next.geometryId,identity);assert.equal(next.textureLayout,first.textureLayout);
+ assert.equal(geometry.stats.texturePackedBytes,256000);assert.equal(geometry.stats.textureFullPacks,fullPacks);
+ const changed=next.texturePatches.filter(p=>p.revision>first.generation);assert.equal(changed.length,1);assert.equal(changed[0].bytes,256000);
+ const at=changed[0].offset;assert.deepEqual(Buffer.from(new Uint8Array(next.data.buffer,at,256000)),Buffer.alloc(256000,123));
+ assert.deepEqual(Buffer.from(new Uint8Array(next.data.buffer,first.data[6]*4,at-first.data[6]*4)),before.subarray(first.data[6]*4,at));
+ for(const f of fonts){assert.equal(f.t.bytes,f.bytes);assert.deepEqual(Buffer.from(f.t.bytes),f.copy);}
+ geometry.build(scene,true);assert.equal(geometry.stats.texturePackedBytes,0);
+ // A newly introduced image changes layout and requires a complete GPU upload.
+ const second=geometry.pixels(2,2,new Bytes(16));const rebuilt=geometry.build(scene,true);assert(rebuilt.textureLayout>next.textureLayout);assert.equal(geometry.stats.textureFullPacks,fullPacks+1);
+ image.update(bytes);const latest=geometry.build(scene,true);assert(latest.texturePatches.find(p=>p.bytes===256000).revision>rebuilt.generation);
+ geometry.close();assert.throws(()=>second.update(new Bytes(16)),/Invalid RGBA frame/);
+});

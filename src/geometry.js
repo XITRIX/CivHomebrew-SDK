@@ -9,7 +9,7 @@
   return out;
  }
  async function create(){
-  var textures=new Map(),generation=0,totalTextureBytes=0,closed=false;
+  var textures=new Map(),generation=0,textureLayout=0,totalTextureBytes=0,closed=false;
   var m=await g.CivNanoVGFactory({civTextures:textures,civTexture:function(op,id,w,h,type,pointer){
    var old=textures.get(id);
    // Retained geometry can still reference an earlier font atlas after NanoVG
@@ -17,16 +17,20 @@
    if(op===2){if(old)old.retired=true;generation++;return;}
    if(op===1){if(!old)throw Error('Unknown NanoVG texture');w=old.w;h=old.h;type=old.type;}
    var size=w*h*(type===1?1:4);if(!Number.isSafeInteger(size)||size<1||totalTextureBytes-(old?old.bytes.length:0)+size>16777216)throw Error('NanoVG texture budget exceeded');
-   totalTextureBytes+=size-(old?old.bytes.length:0);textures.set(id,{w:w,h:h,type:type,bytes:pointer?new Uint8Array(m.HEAPU8.subarray(pointer,pointer+size)):new Uint8Array(size)});generation++;
+   var same=old&&old.w===w&&old.h===h&&old.type===type&&old.bytes.length===size;
+   totalTextureBytes+=size-(old?old.bytes.length:0);
+   var texture=same?old:{w:w,h:h,type:type,bytes:new Uint8Array(size),packedRevision:-1};
+   if(pointer)texture.bytes.set(m.HEAPU8.subarray(pointer,pointer+size));else texture.bytes.fill(0);
+   texture.revision=++generation;if(!same)textureLayout++;textures.set(id,texture);
   }});
   if(!m._civ_init())throw Error('NanoVG initialization failed');
   function withBytes(bytes,fn){var p=m._malloc(bytes.length+1);if(!p)throw Error('NanoVG allocation failed');try{m.HEAPU8.set(bytes,p);m.HEAPU8[p+bytes.length]=0;return fn(p);}finally{m._free(p);}}
   function string(text,fn){var encoded=unescape(encodeURIComponent(text)),bytes=new Uint8Array(encoded.length);for(var i=0;i<encoded.length;i++)bytes[i]=encoded.charCodeAt(i);return withBytes(bytes,fn);}
   var fontData=[decode(g.CivNanoVGAssets['Roboto-Regular.ttf']),decode(g.CivNanoVGAssets['Roboto-Bold.ttf']),decode(g.CivNanoVGAssets['SourceCodePro-Regular.ttf'])],fontPointers=[],fonts=[];
   fontData.forEach(function(bytes,i){var p=m._malloc(bytes.length);if(!p)throw Error('NanoVG font allocation failed');fontPointers.push(p);m.HEAPU8.set(bytes,p);fonts.push(m._civ_font(p,bytes.length,i));if(fonts[i]<0)throw Error('NanoVG font rejected');});
-  var images=new Map(),cache=new Map(),cacheBytes=0,measureCache=new Map(),metricCache=new Map(),packedGeneration=-1,packedTextures=null,packedMeta=null;
+  var images=new Map(),cache=new Map(),cacheBytes=0,measureCache=new Map(),metricCache=new Map(),packedLayout=-1,packedTextures=null,packedMeta=null;
   var arena=null,arenaGeneration=-1,revision=0,prepared=new Map(),preparedBytes=0;
-  var stats={geometryHits:0,geometryMisses:0,geometryBytes:0,textureGeneration:0};
+  var stats={geometryHits:0,geometryMisses:0,geometryBytes:0,textureGeneration:0,texturePackedBytes:0,textureFullPacks:0};
   function measure(text,size,bold){var key=size+':'+bold+':'+text;if(measureCache.has(key))return measureCache.get(key);var value=string(text,function(p){return m._civ_measure(size,fonts[bold===2?2:bold?1:0],p);});if(measureCache.size>=4096)measureCache.clear();measureCache.set(key,value);return value;}
   // Fontstash normalizes vertical metrics to ascent-descent, while current STB
   // rasterization and CSS size glyphs in em units. Use the TTF's actual em
@@ -46,9 +50,29 @@
    if(!id)throw Error('NanoVG RGBA image rejected');var source='civapps-pixels:'+id;images.set(source,id);
    return {source:source,update:function(bytes){
     if(closed||!(bytes instanceof Uint8Array)||bytes.length!==length)throw Error('Invalid RGBA frame');
-    withBytes(bytes,function(p){m._civ_update_image(id,p);});
+    // NanoVG keeps image dimensions/flags, while this backend owns the pixels.
+    // Updating the retained JS buffer avoids a temporary C heap copy/callback.
+    var texture=textures.get(id);if(!texture||texture.type!==3)throw Error('RGBA texture is unavailable');
+    texture.bytes.set(bytes);texture.revision=++generation;
    }};
   }
+  function packTextures(data,metaOffset,textureOffset,texels){
+   var full=packedLayout!==textureLayout||arenaGeneration<0;stats.texturePackedBytes=0;
+   if(full){
+    packedMeta=new Uint32Array(256*4);packedTextures=new Uint32Array(texels);var offset=0;
+    textures.forEach(function(t,id){t.wordOffset=offset;packedMeta.set([offset,t.w,t.h,t.type],id*4);t.packedRevision=-1;offset+=t.w*t.h;});
+    packedLayout=textureLayout;data.set(packedMeta,metaOffset);stats.textureFullPacks++;
+   }
+   textures.forEach(function(t){
+    if(t.packedRevision===t.revision)return;
+    var offset=t.wordOffset,length=t.w*t.h;
+    if(t.type===1)for(var i=0;i<length;i++)packedTextures[offset+i]=(0xffffff00|t.bytes[i])>>>0;
+    else packedTextures.set(new Uint32Array(t.bytes.buffer,t.bytes.byteOffset,length),offset);
+    data.set(packedTextures.subarray(offset,offset+length),textureOffset+offset);
+    stats.texturePackedBytes+=length*4;t.packedRevision=t.revision;
+   });arenaGeneration=generation;
+  }
+  function patches(textureOffset){return Array.from(textures.values(),function(t){return {revision:t.revision,offset:(textureOffset+t.wordOffset)*4,bytes:t.w*t.h*4};});}
   function buildCommand(c,width,height){
    m._civ_begin(width,height);m._civ_clip(c.clip[0],c.clip[1],Math.max(0,c.clip[2]-c.clip[0]),Math.max(0,c.clip[3]-c.clip[1]));
    if(c.color)m._civ_color.apply(null,c.color);
@@ -68,9 +92,10 @@
   function build(scene,retainOnly){
    if(closed)throw Error('NanoVG geometry is closed');stats.geometryHits=stats.geometryMisses=0;var parts=[],nd=0,nt=0;
    var sceneKey=scene.width+':'+scene.height+':'+(scene.__nanoHash||JSON.stringify(scene.commands)),retained=prepared.get(sceneKey),preparedHit=!!retained;
-   if(retained&&retainOnly&&arenaGeneration===generation&&retained.draws.byteLength+retained.tris.byteLength<=524288){
+   if(retained&&retainOnly&&arena&&packedLayout===textureLayout&&retained.draws.byteLength+retained.tris.byteLength<=524288){
     stats.geometryHits=scene.commands.length;stats.geometryMisses=0;stats.preparedHit=true;prepared.delete(sceneKey);prepared.set(sceneKey,retained);
-    return {data:arena,header:retained.header,width:scene.width,height:scene.height,draws:retained.draws.length/32,triangles:retained.tris.length/16,generation:generation,revision:++revision,geometryId:retained,drawData:retained.draws,triData:retained.tris};
+    packTextures(arena,arena[6],arena[7],packedTextures.length);
+    return {data:arena,header:retained.header,width:scene.width,height:scene.height,draws:retained.draws.length/32,triangles:retained.tris.length/16,generation:generation,textureLayout:textureLayout,texturePatches:patches(arena[7]),revision:++revision,geometryId:retained,drawData:retained.draws,triData:retained.tris};
    }
    if(retained){parts=[retained];nd=retained.draws.length/32;nt=retained.tris.length/16;stats.geometryHits=scene.commands.length;prepared.delete(sceneKey);prepared.set(sceneKey,retained);}
    else for(var c of scene.commands){
@@ -104,17 +129,9 @@
     while(prepared.size&&(preparedBytes+size>8388608||prepared.size>=64)){var oldest=prepared.keys().next().value,old=prepared.get(oldest);preparedBytes-=old.draws.byteLength+old.tris.byteLength;prepared.delete(oldest);}
     if(size<=8388608){prepared.set(sceneKey,saved);preparedBytes+=size;}saved.header=new Uint8Array(data.buffer.slice(0,64));retained=saved;
    }
-   if(packedGeneration!==generation){
-    packedMeta=new Uint32Array(256*4);packedTextures=new Uint32Array(texels);var offset=0;
-    textures.forEach(function(t,id){packedMeta.set([offset,t.w,t.h,t.type],id*4);
-     if(t.type===1)for(var i=0;i<t.w*t.h;i++)packedTextures[offset+i]=(0xffffff00|t.bytes[i])>>>0;
-     else packedTextures.set(new Uint32Array(t.bytes.buffer,t.bytes.byteOffset,t.bytes.length/4),offset);
-     offset+=t.w*t.h;
-    });packedGeneration=generation;
-   }
-   if(arenaGeneration!==generation){data.set(packedMeta,metaOffset);data.set(packedTextures,textureOffset);arenaGeneration=generation;}
+   packTextures(data,metaOffset,textureOffset,texels);
    stats.geometryBytes=cacheBytes;stats.preparedBytes=preparedBytes;stats.preparedHit=preparedHit;stats.textureGeneration=generation;stats.inputBytes=data.byteLength;
-   return {data:data,width:scene.width,height:scene.height,draws:nd,triangles:nt,generation:generation,revision:++revision,geometryId:retained,drawData:retained.draws,triData:retained.tris};
+   return {data:data,width:scene.width,height:scene.height,draws:nd,triangles:nt,generation:generation,textureLayout:textureLayout,texturePatches:patches(arena[7]),revision:++revision,geometryId:retained,drawData:retained.draws,triData:retained.tris};
   }
   return {build:build,pixels:pixels,measure:measure,metrics:metrics,stats:stats,module:m,textures:textures,
    close:function(){if(closed)return;closed=true;m._civ_close();fontPointers.forEach(m._free);cache.clear();prepared.clear();arena=null;measureCache.clear();textures.clear();images.clear();}};

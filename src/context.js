@@ -82,8 +82,9 @@
   function heapAddress(bytes){
    if(!(bytes instanceof Uint8Array)||bytes.byteOffset!==0||bytes.byteLength!==bytes.buffer.byteLength)throw Error("Expected whole external byte buffer");
    var object=addrof_compressed(bytes),external=read64_compressed(object+0x28n),base=read32_compressed(object+0x30n);
-   if(base!==0n||external<0x100000000n||external>=0x8000000000n)throw Error("External buffer ABI rejected");
+   if(base!==0n||external<0x100000000n||external+BigInt(bytes.length)>0x8000000000n)throw Error("External buffer ABI rejected");
    for(var i=0;i<Math.min(32,bytes.length);i++)if(Number(read8(external+BigInt(i)))!==bytes[i])throw Error("External buffer verification failed");
+   if(bytes.length&&Number(read8(external+BigInt(bytes.length-1)))!==bytes[bytes.length-1])throw Error('External buffer end verification failed');
    return external;
   }
   function readMemory(pointer,length){
@@ -92,7 +93,11 @@
   }
   function writeMemory(pointer,bytes){
    pointer=BigInt(pointer);range(pointer,bytes.length,3);if(!bytes.length)return;
-   var full=B.from(bytes);stack.call(memcpy_addr,[pointer,heapAddress(full),BigInt(full.length)]);
+   // The view may cover part of a large persistent packet. Borrow its whole
+   // backing store synchronously; keep the view/buffer rooted through memcpy.
+   if(!(bytes instanceof Uint8Array))throw Error('Expected native byte view');
+   var full=new Uint8Array(bytes.buffer),source=heapAddress(full)+BigInt(bytes.byteOffset);
+   stack.call(memcpy_addr,[pointer,source,BigInt(bytes.byteLength)]);
   }
   function verify(pointer,hex){
    pointer=BigInt(pointer);var expected=B.from(hex,"hex");range(pointer,expected.length,5);

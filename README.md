@@ -1,6 +1,6 @@
 # CivHomebrew-SDK
 
-SDK version **1.1.0**, native UI API **1**. A shared NanoVG renderer for CivApps,
+SDK version **1.2.0**, native UI API **1**. A shared NanoVG renderer for CivApps,
 with retained geometry/fonts, native Vulkan rendering, a browser WebGL oracle,
 serialized foreground view leases and an exclusive video surface lease.
 
@@ -98,7 +98,7 @@ mix renderer releases in one process.
 Moonlight declares:
 
 ```json
-{"extensions":{"nativeUi":{"api":1,"library":"civapps-native-ui","version":"1.1.0"}}}
+{"extensions":{"nativeUi":{"api":1,"library":"civapps-native-ui","version":"1.2.0"}}}
 ```
 
 ## Build and test
@@ -169,3 +169,18 @@ belongs to the original application builds, not automatically to this release.
 GPL-3.0-or-later. See `LICENSE`, `PROVENANCE.json` and pinned `third_party/`
 notices for the original bridge/Vulkan, NanoVG and font sources. All native,
 shader, font and build sources required to rebuild the release are included.
+
+## Dynamic framebuffer performance
+
+RGBA updates reuse their pixel allocation and bypass temporary C heap copies.
+The packet builder repacks only changed textures; unchanged font atlases and
+geometry stay retained. The native renderer uploads versioned texture ranges,
+including all changes since its last presented packet when frames are skipped.
+Texture-layout changes still trigger a complete upload. Native writes borrow
+the correct backing-store slice synchronously, preserving ABI/range checks and
+queue completion before reuse.
+
+`node --jitless testing/framebuffer-benchmark.cjs OLD_RUNTIME NEW_RUNTIME` measures
+CPU preparation for a 320x200 framebuffer with a retained HUD. This is not a
+console FPS benchmark; use separate engine, packet preparation, upload, GPU and
+audio timings on the actual console.

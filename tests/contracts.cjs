@@ -9,7 +9,7 @@ test('independent applications reuse the exact same version without redefining f
  const {g,context}=load(),library=g.CivAppsNativeUI,factory=g.CivNanoVGFactory;
  vm.runInContext(bundle,context);assert.equal(g.CivAppsNativeUI,library);assert.equal(g.CivNanoVGFactory,factory);
  assert.equal(library.version,require('../package.json').version);assert.equal(library.sessions,g.CivNanoVGSession);
- assert.throws(()=>vm.runInContext(bundle.replace('var version="1.1.0"','var version="2.0.0"'),context),/version mismatch/);
+ assert.throws(()=>vm.runInContext(bundle.replace('var version='+JSON.stringify(require('../package.json').version),'var version="2.0.0"'),context),/version mismatch/);
  assert.equal(g.CivAppsNativeUI,library);assert.equal(g.CivNanoVGFactory,factory);
  assert.throws(()=>load({CivNanoVGSession:{api:1}}),/restart Civ VII/);
 });

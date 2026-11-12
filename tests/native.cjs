@@ -85,3 +85,34 @@ test('a video surface receives completed GPU output without another UI swapchain
  assert.equal(f.calls.filter(c=>c.name==='vkQueuePresentKHR').length,0);assert.equal(f.calls.filter(c=>c.name==='vkWaitForFences').length,2,'both new and retained geometry complete before output is lent');
  lease.close();const next=renderer.bindSurface(frame=>frames.push(frame));lease.close();renderer.render(packet);assert.equal(frames.length,3,'an old lease cannot remove the new surface');next.close();renderer.render(packet);assert.equal(f.calls.filter(c=>c.name==='vkQueuePresentKHR').length,1);await renderer.close();
 });
+
+test('native dirty uploads catch skipped texture revisions and invalidate completely on layout changes',async()=>{
+ const f=setup(),renderer=await f.g.CivNanoVGVulkan.create({}),packet=f.makePacket();
+ packet.textureLayout=1;packet.texturePatches=[{offset:160,bytes:16,revision:1},{offset:192,bytes:16,revision:1}];renderer.render(packet);
+ let before=renderer.owner.uploadedBytes;packet.generation=2;packet.texturePatches[0].revision=2;packet.data[40]=0x12345678;renderer.render(packet);
+ assert.equal(renderer.owner.uploadedBytes-before,64+16);assert.equal(Buffer.from(f.read(renderer.owner.buffers.input.mapped+160,4)).readUInt32LE(),0x12345678);
+ before=renderer.owner.uploadedBytes;packet.generation=4;packet.texturePatches[0].revision=3;packet.texturePatches[1].revision=4;renderer.render(packet);
+ assert.equal(renderer.owner.uploadedBytes-before,64+32,'both changed textures upload even if intermediate packets were skipped');
+ before=renderer.owner.uploadedBytes;packet.generation=5;packet.textureLayout=2;renderer.render(packet);assert.equal(renderer.owner.uploadedBytes-before,64+192,'changed texture layout uploads metadata and all texels');
+ packet.generation=6;packet.texturePatches=[{offset:packet.data.byteLength-4,bytes:16,revision:6}];
+ const published=renderer.owner.presentations;assert.throws(()=>renderer.render(packet),/patch bounds/);assert.equal(renderer.owner.presentations,published);assert.equal(renderer.owner.state,'quarantined');await renderer.close();
+});
+
+test('native context borrows the correct backing-store slice for one synchronous memcpy',()=>{
+ const native=new Map(),objects=new Map(),backings=new Map(),copies=[];let next=0x1000n,nextBacking=0x500000000n;
+ const sdk=0x100000000n,memcpy=0x200000000n,queryInfo=0x300000000n;
+ function write(at,n,bytes){for(let i=0;i<bytes;i++)native.set(at+BigInt(i),Number(n>>BigInt(8*i)&255n));}
+ function readByte(at){for(const [base,b]of backings){if(at>=base&&at<base+BigInt(b.length))return BigInt(b[Number(at-base)]);}return BigInt(native.get(at)||0);}
+ const read=(at,n)=>{let v=0n;for(let i=0;i<n;i++)v|=readByte(at+BigInt(i))<<BigInt(i*8);return v;};
+ const g={sdk_base:sdk,memcpy_addr:memcpy,malloc:()=>queryInfo,free(){},read8:readByte,read32:p=>p===sdk+0x168b10n?0xd40000c1n:read(p,4),read64:p=>read(p,8),
+  write32:(p,v)=>write(p,v,4),write64:(p,v)=>write(p,v,8),
+  addrof_compressed(bytes){const object=next;next+=0x100n;const base=nextBacking;nextBacking+=BigInt(bytes.length+4096);objects.set(object+0x28n,base);backings.set(base,bytes);return object;},
+  read64_compressed:p=>objects.get(p),read32_compressed:()=>0n,
+  call_rop(fn){assert.equal(fn,sdk+0x168b0cn);write(queryInfo,0n,8);write(queryInfo+8n,0x8000000000n,8);write(queryInfo+16n,3n,4);write(queryInfo+24n,3n,4);return 0n;},
+  CivNanoVGStack:{create:()=>({close(){},call(fn,args){assert.equal(fn,memcpy);copies.push(args);const [dst,src,n]=args;for(let i=0n;i<n;i++)native.set(dst+i,Number(readByte(src+i)));}})},
+  CivNanoVGBuffer:{from(){throw Error('Native write must borrow the buffer without cloning it');}}};
+ g.window=g;const context=vm.createContext(g);vm.runInContext(readModule('context'),context);
+ vm.runInContext('var source=new Uint8Array(96);for(var i=0;i<source.length;i++)source[i]=i;var nativeContext=CivNanoVGNative.create();nativeContext.write(0x600000000,source.subarray(11,31));',context);
+ assert.equal(copies.length,1);assert.equal(copies[0][2],20n);assert.deepEqual(Array.from({length:20},(_,i)=>native.get(0x600000000n+BigInt(i))),Array.from({length:20},(_,i)=>i+11));
+ assert.equal(native.has(0x600000000n+20n),false);assert.equal(copies[0][1],0x500000000n+11n);
+});
