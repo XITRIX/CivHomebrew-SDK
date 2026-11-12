@@ -1,6 +1,6 @@
 {
   "transforms": {
-    "monoFractionalAdvance": 2
+    "fractionalFontAdvance": 4
   },
   "compiler": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 3.1.74 (1092ec30a3fb1d46b1782ff1b4db5094d3d06ae5)",
   "nanovg": "ce3bf745eb2d2dbc14a50bf2446783f691ac4353",
@@ -8,7 +8,7 @@
     "civ-vulkan.js": "3c2f6212ce7c6b90a18138dcf2f8b844cd2d159c2df792c57a0c7153034fe974",
     "nanovg-assets.js": "3cb15b5b37c45eb0bcf61b8248b2ee6078fbda2af8dea66fc84a89c02a8da99b",
     "nanovg-shaders.js": "f91930037c109f46c281d0d4adfcab656f4a5d6169674b10085d79637fd51c77",
-    "nanovg.js": "e6fc99707c16eade7ae8fccfafa9abed5282ba90d255094f7ed0f8a474338917"
+    "nanovg.js": "b0cfcc64e2aec69af9260ce5f9900b6d8f0bd7ad5b35638b6f21c7fe315d8030"
   },
   "inputs": {
     "assets/button-a.png": "6c8aacb0fcb7b697b54dbffe130c012628b7dc6c36894fcc52b72e2fd4dede8e",
@@ -23,7 +23,7 @@
     "native/raster.comp": "9d06332e8aac84ed61e5b1d14919b70547ff8930fb7e1531b440d7d68a46298f",
     "native/raster.glsl": "df94a86ea5e8f32e4127566cf5170a562e5d23ec3fcdfb19f3004b819250971a",
     "tools/build-vulkan.py": "3e14da01eafbfefa0fd568e8747a7f59b48c5ac9a64e8d44bb3fa9dbf22ece5c",
-    "tools/build.py": "f9e09167658c0c1cb2db4b103637f1329698be1923019b5d2f6aed15c4384f9b",
+    "tools/build.py": "f0aa420d55140e5beac0e8de9b38f776ddf2d5a6b09a27d631479cb655d75a88",
     "tools/classic_modules.py": "514c5490f5d12c5266d8d6d4c156ebda58d4a74436753c3ae5f4f68462f39e4e"
   }
 }

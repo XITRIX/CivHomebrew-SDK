@@ -20,6 +20,25 @@ Overlay three</div></div>
   await call('Page.navigate',{url:pathToFileURL(page).href});
   await until('!!window.failure||!!window.shared?.active?.ui.stats.frames');
   assert.equal(await evaluate('window.failure||null'),null);
+  await evaluate(`document.fonts.load('700 24px CivNanoVG')`);
+  // Use the browser's font engine as an independent oracle for measurement,
+  // then snapshot intrinsic labels with Range deliberately absent (Gameface).
+  const fontWidths=await evaluate(`(()=>{var ctx=document.createElement('canvas').getContext('2d'),rows=[];for(var size of [18,21,24,30,34.5,36,48])for(var font of [0,1])for(var text of ['Hello CivHomebrew','Performance overlay','Mouse by Gamepad','AVATAR To WA fi ffi','iiii WWWW 0123456789']){ctx.font=(font?'700 ':'400 ')+size+'px CivNanoVG';rows.push({size,font,text,dom:ctx.measureText(text).width,native:shared.geometry.measure(text,size,font)});}return rows;})()`);
+  for(const row of fontWidths)assert(Math.abs(row.dom-row.native)<.02,JSON.stringify(row));
+  for(const viewport of [960,1280,1920]){
+   await call('Emulation.setDeviceMetricsOverride',{width:viewport,height:viewport*9/16,deviceScaleFactor:1,mobile:false});
+   const labels=await evaluate(`(()=>{
+    var fixture=document.createElement('div');fixture.style.cssText='position:absolute;left:10px;top:380px;color:white;font:24px CivNanoVG';
+    for(var text of ['Mouse by Gamepad','Performance overlay','Hello CivHomebrew']){var n=document.createElement('span');n.textContent=text;n.style.cssText='display:table;height:30px;line-height:30px';fixture.appendChild(n);}
+    var short=document.createElement('span');short.textContent='Hello CivHomebrew';short.style.cssText='display:block;width:100px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;line-height:30px';fixture.appendChild(short);
+    document.getElementById('first').appendChild(fixture);var range=document.createRange;document.createRange=undefined;
+    try{var scene=CivNanoVGScene.snapshot(fixture,{width:1920,height:1080,measure:shared.geometry.measure,metrics:shared.geometry.metrics});return scene.commands.filter(c=>c.kind==='text').map(c=>({text:c.text,fit:c.x+shared.geometry.measure(c.text,c.size,c.font)<=c.clip[2]+.02}));}
+    finally{document.createRange=range;fixture.remove();}
+   })()`);
+   assert.deepEqual(labels.slice(0,3).map(c=>c.text),['Mouse by Gamepad','Performance overlay','Hello CivHomebrew'],'intrinsic single-line labels remain intact at '+viewport);
+   assert(labels.every(c=>c.fit),JSON.stringify(labels));assert(labels[3].text.endsWith('…'),'actual constrained overflow still ellipsizes');
+  }
+  await call('Emulation.setDeviceMetricsOverride',{width:1280,height:720,deviceScaleFactor:1,mobile:false});
   const pixels=await evaluate(`(()=>{var b=shared.renderer.read();function pixel(x,y){return Array.from(b.slice((y*1920+x)*4,(y*1920+x)*4+4));}return [pixel(75,75),pixel(1800,1000)];})()`);
   assert(pixels[0].every((v,i)=>Math.abs(v-[51,102,153,128][i])<=1),JSON.stringify(pixels));
   assert.deepEqual(pixels[1],[0,0,0,0]);

@@ -24,17 +24,21 @@ for directory in ['nanovg','civ-vulkan','source-code-pro']:
     for name,digest in json.loads((p/'SOURCE.json').read_text())['sha256'].items():
         if hashlib.sha256((p/name).read_bytes()).hexdigest()!=digest:
             raise SystemExit(f'Pinned source changed: {directory}/{name}')
-# Preserve upstream files. Only the explicitly named monospace face uses
-# fractional advances, avoiding cumulative rounding drift across 146 columns.
+# Preserve upstream files. DOM layout uses fractional font advances. Rounding
+# each glyph/kerning pair (and storing advances in tenths of a pixel) makes
+# intrinsic labels wrap or ellipsize even when the same font fits in the DOM.
 port=BUILD/'c-source';port.mkdir(exist_ok=True)
 shutil.copyfile(ROOT/'third_party/nanovg/nanovg.c',port/'nanovg.c')
 fontstash=(ROOT/'third_party/nanovg/fontstash.h').read_text()
-advance='*x += (int)(glyph->xadv / 10.0f + 0.5f);'
-if fontstash.count(advance)!=1:raise SystemExit('Fontstash advance patch anchor changed')
-fontstash=fontstash.replace(advance,'*x += strcmp(font->name, "mono")==0 ? glyph->xadv / 10.0f : (int)(glyph->xadv / 10.0f + 0.5f);')
-advance_store='glyph->xadv = (short)(scale * advance * 10.0f);'
-if fontstash.count(advance_store)!=1:raise SystemExit('Fontstash glyph advance anchor changed')
-fontstash=fontstash.replace(advance_store,'glyph->xadv = (short)(scale * advance * 10.0f + (strcmp(font->name, "mono")==0 ? 0.5f : 0.0f));')
+font_patches={
+    'short xadv,xoff,yoff;':'float xadv; short xoff,yoff;',
+    'glyph->xadv = (short)(scale * advance * 10.0f);':'glyph->xadv = scale * advance;',
+    '*x += (int)(glyph->xadv / 10.0f + 0.5f);':'*x += glyph->xadv;',
+    '*x += (int)(adv + spacing + 0.5f);':'*x += adv + spacing;',
+}
+for anchor,replacement in font_patches.items():
+    if fontstash.count(anchor)!=1:raise SystemExit('Fontstash fractional advance anchor changed: '+anchor)
+    fontstash=fontstash.replace(anchor,replacement)
 (port/'fontstash.h').write_text(fontstash)
 exports=['malloc','free','civ_init','civ_font','civ_image','civ_rgba','civ_update_image','civ_begin','civ_clip','civ_color','civ_rect','civ_triangle','civ_border','civ_picture','civ_text','civ_measure','civ_metrics','civ_end','civ_draws','civ_tris','civ_draw_count','civ_tri_count','civ_failed','civ_close']
 subprocess.run([str(emcc),'-O3','-flto',str(port/'nanovg.c'),str(ROOT/'native/capture.c'),'-I'+str(ROOT/'third_party/nanovg'),'-sWASM=0','-sSINGLE_FILE=1','-sMODULARIZE=1','-sEXPORT_NAME=CivNanoVGFactory','-sENVIRONMENT=web,shell','-sFILESYSTEM=0','-sINITIAL_MEMORY=33554432','-sALLOW_MEMORY_GROWTH=0','-sSTACK_SIZE=2097152','-sEXPORTED_FUNCTIONS='+json.dumps(['_'+n for n in exports]),'-o',str(OUT/'nanovg.js')],env=env,check=True)
@@ -66,7 +70,7 @@ for name in ['bin.comp','raster.comp','present.vert','present.frag']:
     shaders[name]=(Path(str(file)+'.spv').read_bytes()).hex()
 web='#version 300 es\nprecision highp float;precision highp int;precision highp usampler2D;\nuniform usampler2D uData,uBins;\nuniform int uWidth,uHeight;\nout vec4 color;\n#define NATIVE_BINS\nconst int BIN_CAPACITY=128,BIN_STRIDE=897;\nuint word(int i){return texelFetch(uData,ivec2(i%1024,i/1024),0).r;}\nuint bin(int i){return texelFetch(uBins,ivec2(i%1024,i/1024),0).r;}\n'+common+'\nvoid main(){color=raster(vec2(gl_FragCoord.x,float(uHeight)-gl_FragCoord.y));}\n'
 (OUT/'nanovg-shaders.js').write_text('/* Generated from native/; native SPIR-V and shared browser oracle. */\nwindow.CivNanoVGShaders='+json.dumps({'spirv':shaders,'web':web},separators=(',',':'))+';\n')
-manifest={'transforms':{'monoFractionalAdvance':2},'compiler':version,'nanovg':json.loads((ROOT/'third_party/nanovg/SOURCE.json').read_text())['commit'],'sha256':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(OUT.glob('*.js'))}}
+manifest={'transforms':{'fractionalFontAdvance':len(font_patches)},'compiler':version,'nanovg':json.loads((ROOT/'third_party/nanovg/SOURCE.json').read_text())['commit'],'sha256':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(OUT.glob('*.js'))}}
 manifest['inputs']={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(list((ROOT/'native').glob('*'))+list((ROOT/'assets').glob('*'))+[ROOT/'tools/build.py',ROOT/'tools/build-vulkan.py',ROOT/'tools/classic_modules.py']) if p.is_file()}
 (OUT/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 (BUILD/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')

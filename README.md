@@ -1,8 +1,13 @@
 # CivHomebrew-SDK
 
-SDK version **1.3.5**, native UI API **1**. A shared NanoVG renderer for CivApps,
+SDK version **1.3.6**, native UI API **1**. A shared NanoVG renderer for CivApps,
 with retained geometry/fonts, native Vulkan rendering, a browser WebGL oracle,
 serialized foreground view leases and an exclusive video surface lease.
+
+SDK 1.3.6 preserves full fractional glyph and kerning advances for every font.
+Measurement and drawing share those advances, avoiding cumulative width drift
+against DOM layout. Wrapping, ellipsis and horizontal text clips use the same
+one-CSS-pixel edge tolerance; genuinely constrained text still wraps/truncates.
 
 Source repository: [XITRIX/CivHomebrew-SDK](https://github.com/XITRIX/CivHomebrew-SDK).
 

@@ -21,7 +21,8 @@
   if(ellipsis&&w>width+allowance){var points=Array.from(text);while(points.length&&measure(points.join('')+'…')>width+allowance)points.pop();text=points.join('')+'…';w=measure(text);}
   return {text:text,x:align==='right'?right-w:align==='center'?left+(width-w)/2:left,width:w};
  }
- function wrapWords(paragraph,width,measure,breakWord){
+ function wrapWords(paragraph,width,measure,breakWord,allowance){
+  width+=allowance||0;
   var out=[],line='';for(var part of paragraph.split(' ')){
    var next=line?line+' '+part:part;if(line&&measure(next)>width){out.push(line);line='';next=part;}
    if(!line&&breakWord&&measure(part)>width){for(var ch of Array.from(part)){if(line&&measure(line+ch)>width){out.push(line);line='';}line+=ch;}}
@@ -65,7 +66,9 @@
    }
    var size=fontSize*sy,bold=Number(s.fontWeight)>=600?1:0,font=/monospace|CivNanoMono|Source Code Pro/i.test(s.fontFamily||'')?2:bold,color=rgba(s.color,alpha);
    var left=r[0]+pixels(s.paddingLeft,rootSize,fontSize)*sx+border[3],right=r[2]-pixels(s.paddingRight,rootSize,fontSize)*sx-border[1],contentTop=r[1]+pixels(s.paddingTop,rootSize,fontSize)*sy+border[0],contentBottom=r[3]-pixels(s.paddingBottom,rootSize,fontSize)*sy-border[2];
-   var ellipsis=s.textOverflow==='ellipsis',allowance=ellipsis?sx:0,textClip=intersect([left-allowance,contentTop,right+allowance,contentBottom],clip);
+   // Share the same one-CSS-pixel edge tolerance across wrapping, ellipsis and
+   // glyph clipping; intrinsic DOM boxes can round to either side of an edge.
+   var ellipsis=s.textOverflow==='ellipsis',allowance=sx,textClip=intersect([left-allowance,contentTop,right+allowance,contentBottom],clip);
    var align=s.textAlign;if(s.display.indexOf('flex')>=0&&s.justifyContent==='center')align='center';
    // A rightmost space-between value is positioned by the layout engine's font width.
    // Anchor its native text to the same content edge, using native advances.
@@ -93,7 +96,7 @@
      var top=contentTop,lh=lineHeight(s.lineHeight,fontSize,rootSize)*sy;
      if(!Number.isFinite(lh)||lh<=0)lh=metrics[2];
      for(var paragraph of text.split('\n')){
-      var rows=(s.whiteSpace==='nowrap'||s.whiteSpace==='pre')?[paragraph]:wrapWords(paragraph,right-left,function(t){return o.measure(t,size,font);},s.overflowWrap==='break-word'||s.overflowWrap==='anywhere'||s.wordBreak==='break-all');
+      var rows=(s.whiteSpace==='nowrap'||s.whiteSpace==='pre')?[paragraph]:wrapWords(paragraph,right-left,function(t){return o.measure(t,size,font);},s.overflowWrap==='break-word'||s.overflowWrap==='anywhere'||s.wordBreak==='break-all',allowance);
       rows.forEach(function(row){lines.push({text:row,x:left,top:top,height:lh});top+=lh;});
      }
      if(s.display.indexOf('flex')>=0&&s.alignItems==='center'){var dy=(contentBottom-contentTop-lines.length*lh)/2;lines.forEach(function(l){l.top+=dy;});}

@@ -102,6 +102,39 @@ test('text layout fits ellipsis before right/center alignment and allows one CSS
  assert.equal(scene.fitLine('abcdefgh',0,79.25,'right',true,measure,1).text,'abcdefgh');assert.notEqual(scene.fitLine('abcdefgh',0,78.5,'right',true,measure,1).text,'abcdefgh');
  assert.equal(scene.pixels('1.5rem',18,24),27);assert.equal(scene.pixels('2em',18,24),48);
  assert.deepEqual(Array.from(scene.wrapWords('abc defghijkl',50,measure,true)),['abc','defgh','ijkl']);
+ assert.deepEqual(Array.from(scene.wrapWords('abc def',69.25,measure,false,1)),['abc def'],'a rounded intrinsic box must not hide the last word on another row');
+ assert.deepEqual(Array.from(scene.wrapWords('abc def',68.5,measure,false,1)),['abc','def'],'real overflow still wraps');
+ assert.deepEqual(Array.from(scene.wrapWords('abcdefg',69.25,measure,true,1)),['abcdefg'],'break-word uses the same tolerance');
+});
+
+test('all NanoVG fonts preserve fractional advances without cumulative rounding',async()=>{
+ const geometry=await load().CivNanoVGGeometry.create();
+ try{
+  // Independent hmtx reference from each bundled TTF, using repeated unkerned
+  // ASCII glyphs so a long line exposes per-glyph rounding/truncation drift.
+  for(const [font,file] of [[0,'third_party/nanovg/Roboto-Regular.ttf'],[1,'third_party/nanovg/Roboto-Bold.ttf'],[2,'third_party/source-code-pro/SourceCodePro-Regular.ttf']]){
+   const bytes=fs.readFileSync(path.join(root,file)),tables={};
+   for(let i=0;i<bytes.readUInt16BE(4);i++){const at=12+i*16;tables[bytes.toString('ascii',at,at+4)]=bytes.readUInt32BE(at+8);}
+   const units=bytes.readUInt16BE(tables.head+18),metrics=bytes.readUInt16BE(tables.hhea+34),cmap=tables.cmap;
+   let subtable;
+   for(let i=0;i<bytes.readUInt16BE(cmap+2);i++){const at=cmap+4+i*8,offset=cmap+bytes.readUInt32BE(at+4);if(bytes.readUInt16BE(offset)===4){subtable=offset;break;}}
+   assert(subtable,'font has a BMP cmap');
+   function advance(code){
+    const count=bytes.readUInt16BE(subtable+6)/2,end=subtable+14,start=end+count*2+2,delta=start+count*2,range=delta+count*2;
+    for(let i=0;i<count;i++)if(code>=bytes.readUInt16BE(start+i*2)&&code<=bytes.readUInt16BE(end+i*2)){
+     const offset=bytes.readUInt16BE(range+i*2),d=bytes.readInt16BE(delta+i*2);
+     let glyph=offset?bytes.readUInt16BE(range+i*2+offset+(code-bytes.readUInt16BE(start+i*2))*2):code;
+     glyph=offset&&glyph===0?0:(glyph+d)&65535;
+     return bytes.readUInt16BE(tables.hmtx+Math.min(glyph,metrics-1)*4)/units;
+    }
+    throw Error('Missing test glyph');
+   }
+   for(const size of [18,21,24,30,34.5,36,48])for(const ch of ['i','W','0',' ']){
+    const expected=advance(ch.charCodeAt(0))*size*100,actual=geometry.measure(ch.repeat(100),size,font);
+    assert(Math.abs(actual-expected)<.02,JSON.stringify({font,size,ch,expected,actual}));
+   }
+  }
+ }finally{geometry.close();}
 });
 
 test('dynamic pixels preserve atlas buffers, packed layout and geometry across skipped frames',async()=>{
