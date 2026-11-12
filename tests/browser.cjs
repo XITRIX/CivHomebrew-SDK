@@ -47,6 +47,14 @@ Overlay three</div></div>
   const screenshot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(out,'native-ui.png'),Buffer.from(screenshot.data,'base64'));
   await evaluate('(async()=>{await newLease.close();await shared.close();})()');
   assert.equal(await evaluate('CivAppsNativeUI.sessions.current===null&&document.querySelectorAll("#nanovg-output").length===0'),true);
+  await evaluate('(async()=>{window.__civhomebrewCore={};window.blocked=await CivHomebrewSDK.app.mount(document.body,{native:true});window.blockedDone=false;blocked.lifetime.then(()=>blockedDone=true);})()');
+  assert.equal(await evaluate('blocked.blocked&&!blockedDone&&document.querySelector("#civ-sdk-update-launcher h1").textContent==="Update Launcher"'),true);
+  await call('Emulation.setDeviceMetricsOverride',{width:960,height:540,deviceScaleFactor:1,mobile:false});
+  const blockerLayout=await evaluate('(()=>{var n=document.getElementById("civ-sdk-update-launcher"),r=n.getBoundingClientRect(),b=n.querySelector("button").getBoundingClientRect();return {width:r.width,height:r.height,back:b.bottom,scroll:n.scrollHeight-n.clientHeight};})()');
+  assert.equal(blockerLayout.width,960);assert.equal(blockerLayout.height,540);assert(blockerLayout.back<=540);assert(blockerLayout.scroll<=1);
+  const blockerShot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(out,'update-launcher.png'),Buffer.from(blockerShot.data,'base64'));
+  await evaluate('(async()=>{window.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}));await blocked.lifetime;})()');
+  assert.equal(await evaluate('blockedDone&&!document.getElementById("civ-sdk-update-launcher")'),true);
   console.log('Standalone browser passed: alpha, fonts/line spacing, view handoff, no-Range fallback, retained owner and cleanup.');
  }finally{await chrome.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

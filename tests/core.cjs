@@ -51,8 +51,27 @@ test('Gameface readiness rejects stale focus/display styles until the engine app
  vm.runInContext(readModule('scene'),vm.createContext(g));
  const node=(style,computed,selected=false)=>({style,computed,hasAttribute:k=>k==='data-selected'&&selected});
  const old=node({display:'none',borderTopColor:'rgba(0,0,0,0)'},{display:'flex',borderTopColor:'rgba(0,239,207,1)'},true),next=node({display:'flex',borderTopColor:'rgba(0,239,207,1)'},{display:'none',borderTopColor:'rgba(0,0,0,0)'},true);
- const fixtureRoot=node({},{});fixtureRoot.querySelectorAll=()=>[old,next];assert.equal(g.CivNanoVGScene.ready(fixtureRoot),false);
+ const fixtureRoot=node({},{});fixtureRoot.children=[old,next];assert.equal(g.CivNanoVGScene.ready(fixtureRoot),false);
  old.computed={...old.style};next.computed={...next.style};assert.equal(g.CivNanoVGScene.ready(fixtureRoot),true);
+});
+test('hidden screen descendants do not delay a visible frame; showing them rechecks pending styles',()=>{
+ let reads=0;const g={};g.window=g;g.getComputedStyle=n=>{reads++;return n.computed;};
+ vm.runInContext(readModule('scene'),vm.createContext(g));
+ const node=(display,computed,children=[])=>({style:{display},computed:{display:computed},children,hasAttribute:()=>false});
+ const stale=node('flex','none'),hidden=node('none','none',Array.from({length:1000},()=>stale)),visible=node('flex','flex'),root=node('flex','flex',[hidden,visible]);
+ assert.equal(g.CivNanoVGScene.ready(root),true);assert.equal(reads,3,'only visible nodes and the hidden screen boundary are inspected');
+ hidden.style.display='flex';assert.equal(g.CivNanoVGScene.ready(root),false);
+ hidden.computed.display='flex';assert.equal(g.CivNanoVGScene.ready(root),false,'newly visible stale children still block retention');
+ stale.computed.display='flex';assert.equal(g.CivNanoVGScene.ready(root),true);
+});
+test('a shared view schedules its first frame after the app finishes constructing content',async()=>{
+ const callbacks=new Map(),drawn=[];let id=0,label='empty';
+ const rootNode={innerHTML:'',children:[],addEventListener(){},removeEventListener(){},querySelector(){return null;},__civNanoVGSceneKey:()=>label};
+ const geometry={metrics(){},measure(){},build:scene=>({label:scene.commands[0].label})},renderer={render:p=>drawn.push(p.label)};
+ const g={setTimeout:fn=>{callbacks.set(++id,fn);return id;},clearTimeout:n=>callbacks.delete(n),innerWidth:1280,innerHeight:720,addEventListener(){},removeEventListener(){},CivNanoVGScene:{ready:()=>true,snapshot:()=>({commands:[{label}],warnings:[]})},document:{getElementById:()=>null}};g.window=g;
+ vm.runInContext(readModule('prototype'),vm.createContext(g));
+ const ui=await g.CivNanoVGPrototype.attach(rootNode,{session:{geometry,renderer}});
+ assert.deepEqual(drawn,[]);label='ready';callbacks.values().next().value();assert.deepEqual(drawn,['ready']);await ui.close();
 });
 test('a pending Gameface layout is never retained under the new selection key',async()=>{
  let state='a',ready=true,snapshots=0;const drawn=[],rootNode={innerHTML:'',addEventListener(){},removeEventListener(){},querySelector(){return {getAttribute:()=>state};},__civNanoVGSceneKey:()=>state};

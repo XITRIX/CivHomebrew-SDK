@@ -2,5 +2,6 @@ build/
 dist/
 toolchains/
 __pycache__/
-*.pyc
+*.py[cod]
 .DS_Store
+node_modules/

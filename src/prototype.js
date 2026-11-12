@@ -39,7 +39,9 @@
   if(typeof MutationObserver==='function'){observer=new MutationObserver(invalidate);observer.observe(root,{subtree:true,attributes:true,childList:true,characterData:true});}
   var instance={geometry:geometry,renderer:renderer,stats:stats,update:update,invalidate:invalidate,resetLayoutCache:reset,scene:null,packet:null,
    close:async function(){if(closed)return;closed=true;if(timer!==null)clearTimeout(timer);if(settle!==null)clearTimeout(settle);if(observer)observer.disconnect();removers.forEach(function(r){r();});try{if(!o.session)await renderer.close();}finally{if(!o.session)geometry.close();scenes.clear();textCache=new WeakMap();if(style&&style.parentNode)style.parentNode.removeChild(style);var canvas=!o.session&&document.getElementById('nanovg-output');if(canvas&&canvas.parentNode)canvas.parentNode.removeChild(canvas);if(current===instance)current=null;}}};
-  current=instance;update();return instance;
+  // Shared apps construct their content after awaiting attach(). Coalesce that
+  // work into the first scheduled frame instead of presenting an empty root.
+  current=instance;if(o.session)invalidate();else update();return instance;
   }catch(e){
    if(current&&current.geometry===geometry)await current.close();
    else{if(!o.session)geometry.close();if(style&&style.parentNode)style.parentNode.removeChild(style);var canvas=!o.session&&document.getElementById('nanovg-output');if(canvas&&canvas.parentNode)canvas.parentNode.removeChild(canvas);}

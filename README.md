@@ -1,6 +1,6 @@
 # CivHomebrew-SDK
 
-SDK version **1.3.0**, native UI API **1**. A shared NanoVG renderer for CivApps,
+SDK version **1.3.5**, native UI API **1**. A shared NanoVG renderer for CivApps,
 with retained geometry/fonts, native Vulkan rendering, a browser WebGL oracle,
 serialized foreground view leases and an exclusive video surface lease.
 
@@ -33,12 +33,30 @@ SDK's existing display. No game assets are included in the SDK.
 `graphicsModules`). App adapters contain policy and protocol glue; shared
 implementations and regression oracles are maintained here.
 
-The SDK core normally rejects mixed versions. The resident core builder may
+The SDK core reuses an existing compatible release without redefining its modules. The resident core builder may
 explicitly replace a bootstrap core before any native UI backend or graphics
 owner exists, using its guarded bootstrap handoff. This lets a cold core update
 upgrade SDK fixes without trapping it on an older bootstrap version. Apps cannot
-replace an already initialized renderer. New native renderer versions require
-all matching app pins and a Civ VII restart.
+replace an already initialized renderer. A new native renderer release requires a Civ VII restart. Apps must declare
+any required minimum release or capabilities; older same-major pins remain compatible.
+
+## Genuine inline keyboard
+
+SDK 1.3.5 adds `CivAppsNativeUI.keyboard.open({session, root, view, error})`
+(also exported as `CivSDKKeyboard.open`) for the native renderer. Acquire before
+activating the shipped `fxs-textbox`; close the returned lease after the original
+IME callback has completed, and on editor/app cleanup. It borrows the game's
+1280×720 RGBA keyboard image and uses the existing exclusive framebuffer texture.
+The game retains keyboard input, callbacks, allocation and applet ownership.
+A second framebuffer lease is refused rather than replacing another app's pixels.
+
+This native adapter is guarded for Civ VII cartridge 1.0.0 on Switch 2. The
+96-byte game image reader and every returned pointer/size/state are checked.
+It does not call display visibility setters or destroy the renderer. Host tests
+cover ownership and failures; the user confirmed visible Moonlight pairing,
+confirmation, cancellation and reopening on 2026-11-12. This does not qualify
+other game builds or hardware. Consumers using it must declare native UI
+`minVersion: "1.3.5"`; compatible older same-major app releases remain usable.
 
 ## Runtime contract
 
@@ -63,7 +81,23 @@ after session close; native owner recreation is deliberately rejected.
 
 `CivHomebrewSDK.app.mount(root, options)` borrows the existing view and owns
 only that lease. It permits DOM preview without graphics and refuses to start a
-second native session under a resident that has no compatible owner.
+second native session under a resident that has no compatible owner. When the
+resident still uses Gameface (no native renderer owner), it returns a DOM
+**Update Launcher** blocker lease (`blocked: true`). Check this before starting
+app work, publish its `close` method as the foreground app cleanup, and await
+its `lifetime` before returning. B/Back or Escape dismisses the screen; closing
+the lease also releases its input handlers. Pending native session startup is
+awaited before deciding. Browser previews keep their existing behavior.
+
+```js
+const view = await CivHomebrewSDK.app.mount(root);
+if (view && view.blocked) {
+  window.__civswitchApp = view;
+  await view.lifetime;
+  if (window.__civswitchApp === view) delete window.__civswitchApp;
+  return; // do not initialize the application behind the blocker
+}
+```
 
 `CivHomebrewSDK.framebuffer.create({session, view, canvas, width, height})`
 adds an RGBA pixel source to a DOM canvas. `present(bytes)` uploads a complete
@@ -89,17 +123,41 @@ arbitrary HTML/CSS. For multiline text without DOM Range, use block elements or
 preformatted newlines; flowing text split across inline nodes and `<br>` is not
 fully laid out by the fallback. Transforms and shadows produce warnings.
 
-Loading the exact release again preserves the service, factories and owners.
-A different version, or an older unversioned native service, is rejected before
-module evaluation. Update both apps and restart Civ VII when changing the
-resident renderer. API 1 describes the view contract; it is not permission to
-mix renderer releases in one process.
+Loading a compatible release preserves the resident service, factories and native
+owner. Both the lightweight SDK guard and full UI guard require API 1 and the
+same stable release major version; minor and patch differences are allowed in
+either direction. A release number identifies bundled bytes, not a minimum
+runtime requirement. Breaking API/ABI changes require a new API/major boundary;
+compatible releases must preserve that contract. Existing unversioned owners
+and inconsistent session exports still reject before module evaluation. A
+bootstrap handoff may upgrade the core only before a native/UI owner exists.
 
-Moonlight declares:
+Apps can declare optional requirements:
 
 ```json
-{"extensions":{"nativeUi":{"api":1,"library":"civapps-native-ui","version":"1.3.0"}}}
+{"extensions":{"nativeUi":{"api":1,"library":"civapps-native-ui","version":"1.3.2","minVersion":"1.3.0","capabilities":["native-ui","framebuffer"]}}}
 ```
+
+`version` records the bundled release and selects its compatible major. Omit
+`minVersion` unless the app needs an implementation introduced in that release;
+it is an inclusive minimum within the same major. `capabilities` lists required
+SDK interfaces, not device/hardware support. Stable versions use `major.minor.patch`
+without prerelease/build suffixes. API-only declarations remain supported.
+The SDK exports `compatibility.validate(requirements)` and
+`compatibility.assert(runtime, requirements)` for launch preflight. Core
+capabilities are `app`, `bytes`, `controller`, `framebuffer`, `graphics`, `native`,
+`stack`, and `transfer`; the full UI adds `native-ui`, `scene`, `geometry`, and
+`web`. Older runtimes without capability advertisements cannot satisfy explicit
+capability requirements. The runtime descriptor's version remains the resident
+implementation's version when an app reuses it.
+
+Consumer lock files still pin exact versions and SHA-256 hashes for reproducible
+builds. The installer updates bundled-version provenance without changing an
+app's optional minimum or capability requirements. There is no live native owner
+replacement: installing an updated Launcher/core still requires restarting Civ
+VII to activate new resident bytes. Already distributed bundles with the old
+exact-version guard need one SDK refresh; updating the Launcher cannot rewrite
+those guards. SDK 1.3.2 consumers tolerate subsequent compatible releases.
 
 ## Build and test
 
@@ -191,3 +249,11 @@ sampling, video-surface handoff, refresh changes and normal close drain the queu
 first. GPU-owned mapped input and submission records are never reused before
 completion. Ordinary UI updates remain synchronous. Pass
 `deferPresentWait:false` to framebuffer creation to request synchronous output.
+
+## Test ownership
+
+The SDK owns generic renderer, native stack, buffer transfer, `.civapp` packager
+and loader sender tests. `npm test` runs these without any application checkout.
+Consumers keep their own screens, packaging order, lifecycle, storage, streaming
+and game integration tests. Vendored release tooling is verified by the consumer
+lock; changes to shared tooling belong here and require a new release.

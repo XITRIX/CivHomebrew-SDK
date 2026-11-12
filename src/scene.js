@@ -121,10 +121,13 @@
  // the layout engine applies CSS on an engine update. A rectangle read does not flush
  // pending display/focus styles. Never cache a new state under stale styles.
  function ready(root){
-  var nodes=Array.from(root.querySelectorAll('*'));nodes.unshift(root);
-  for(var n of nodes){var inline=n.style,s=null;
-   if(inline.display){s=g.getComputedStyle(n);if(s.display!==inline.display)return false;}
+  var nodes=[root];
+  while(nodes.length){var n=nodes.pop(),inline=n.style,s=null;
+   if(inline.display){s=g.getComputedStyle(n);if(s.display!==inline.display)return false;if(s.display==='none')continue;}
    if(n.hasAttribute('data-selected')&&inline.borderTopColor){s=s||g.getComputedStyle(n);if(String(rgba(s.borderTopColor,1))!==String(rgba(inline.borderTopColor,1)))return false;}
+   // Hidden screens cannot affect this frame. Their pending styles are checked
+   // when shown, rather than delaying or walking the entire inactive subtree.
+   var children=n.children||[];for(var i=children.length-1;i>=0;i--)nodes.push(children[i]);
   }return true;
  }
  g.CivNanoVGScene={snapshot:snapshot,intersect:intersect,ready:ready,pixels:pixels,lineHeight:lineHeight,fitLine:fitLine,wrapWords:wrapWords};

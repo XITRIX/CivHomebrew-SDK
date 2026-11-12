@@ -18,9 +18,14 @@ class ReleaseTests(unittest.TestCase):
             shutil.copytree(ROOT, moved, ignore=shutil.ignore_patterns('build', 'dist', 'toolchains', '__pycache__', '.git'))
             consumer = Path(temp) / 'app'
             consumer.mkdir()
+            requirements = dict(api=1, library='civapps-native-ui', version='1.0.0',
+                                minVersion='1.2.0', capabilities=['framebuffer'])
+            (consumer / 'payload.json').write_text(json.dumps(dict(extensions=dict(nativeUi=requirements))))
             command = ['python3', '-B', str(moved / 'tools/release.py')]
             subprocess.run(command + ['--install', str(consumer)], check=True, capture_output=True)
             version = json.loads((moved / 'package.json').read_text())['version']
+            installed = json.loads((consumer / 'payload.json').read_text())['extensions']['nativeUi']
+            self.assertEqual(installed, dict(requirements, version=version))
             for name in ['civhomebrew-sdk.js','civapps-native-ui.js']:
                 (moved/'dist'/version/name).read_bytes().decode('ascii')
             filename = 'civhomebrew-sdk-' + version + '.tar.gz'

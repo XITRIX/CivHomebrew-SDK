@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CORE_MODULES = [('src', n) for n in ['bytes', 'stack', 'native-bridge', 'context', 'transfer', 'controller', 'app', 'framebuffer']]
 MODULES = (
            [('vendor', n) for n in ['civ-vulkan', 'nanovg', 'nanovg-assets', 'nanovg-shaders']] +
-           [('src', n) for n in ['scene', 'geometry', 'vulkan', 'prototype', 'session', 'web']])
+           [('src', n) for n in ['scene', 'geometry', 'vulkan', 'prototype', 'session', 'keyboard', 'web']])
 
 
 def build():
@@ -46,16 +46,23 @@ def build():
                 text = '\n'.join('' if not line.strip() else line for line in text.splitlines()) + '\n'
             result += '\n;/* CIVAPPS_MODULE ' + name + ' */\n' + text + '\n;/* CIVAPPS_MODULE_END ' + name + ' */\n'
         return result
+    compatibility = (ROOT / 'src/compatibility.js').read_text()
+    hashes['src/compatibility.js'] = hashlib.sha256(compatibility.encode()).hexdigest()
     core = '''/* CivHomebrew-SDK VERSION core; GPL-3.0-or-later. */
 (function(g){"use strict";
+COMPATIBILITY_HELPER
 var version=VERSION_JSON,existing=g.CivHomebrewSDK;
 if(existing){
- if(existing.api===1&&existing.version===version)return;
- if(!g.__civSDKBootstrapHandoff||g.CivAppsNativeUI||g.__civNanoVGVulkan)throw Error('CivHomebrew SDK version mismatch; update all apps and restart Civ VII');
+ var handoff=g.__civSDKBootstrapHandoff&&!g.CivAppsNativeUI&&!g.__civNanoVGVulkan;
+ if((existing.api===1&&existing.version===version)||!handoff){
+  compatibility.assert(existing,{api:1,library:'civhomebrew-sdk',version:version});
+  return;
+ }
 }
-'''.replace('VERSION_JSON', json.dumps(version)).replace('VERSION', version)
+'''.replace('VERSION_JSON', json.dumps(version)).replace('VERSION', version).replace('COMPATIBILITY_HELPER', compatibility)
     core += modules(CORE_MODULES)
-    core += '''g.CivHomebrewSDK=Object.freeze({name:'civhomebrew-sdk',api:1,version:version,
+    core += '''g.CivHomebrewSDK=Object.freeze({name:'civhomebrew-sdk',api:1,version:version,compatibility:compatibility,
+ capabilities:Object.freeze(['app','bytes','controller','framebuffer','graphics','native','stack','transfer']),
  native:g.CivSDKNative,bytes:g.CivSDKBytes,transfer:g.CivSDKTransfer,stack:g.CivSDKStack,
  graphics:g.CivSDKGraphics,controller:g.CivSDKController,app:g.CivSDKApp,framebuffer:g.CivSDKFramebuffer,
  get nativeUI(){return g.CivAppsNativeUI||null;},get graphicsModules(){return g.CivNanoVGModules||null;}});
@@ -63,19 +70,23 @@ if(existing){
 '''
     source = '''/* civapps-native-ui VERSION; GPL-3.0-or-later; see NOTICE.txt. */
 (function(g){"use strict";
+COMPATIBILITY_HELPER
 var version=VERSION_JSON,existing=g.CivAppsNativeUI;
 if(existing){
- if(existing.api!==1||existing.version!==version||existing.sessions!==g.CivNanoVGSession||!g.CivHomebrewSDK||g.CivHomebrewSDK.version!==version)
-  throw Error('CivApps native UI version mismatch; update the Launcher and app together, then restart Civ VII');
+ compatibility.assert(existing,{api:1,library:'civapps-native-ui',version:version});
+ compatibility.assert(g.CivHomebrewSDK,{api:existing.api,library:'civhomebrew-sdk',version:existing.version});
+ if(existing.sessions!==g.CivNanoVGSession)
+  throw Error('Inconsistent CivApps native UI owner; restart Civ VII');
  return;
 }
 if(g.CivNanoVGSession||g.__civNanoVGVulkan)
  throw Error('Update the native Launcher and restart Civ VII before loading CivApps native UI');
-'''.replace('VERSION_JSON', json.dumps(version)).replace('VERSION', version)
+'''.replace('VERSION_JSON', json.dumps(version)).replace('VERSION', version).replace('COMPATIBILITY_HELPER', compatibility)
     source += core + modules(MODULES)
-    source += '''g.CivAppsNativeUI=Object.freeze({name:'civapps-native-ui',api:1,version:version,
+    source += '''g.CivAppsNativeUI=Object.freeze({name:'civapps-native-ui',api:1,version:version,compatibility:compatibility,
+ capabilities:Object.freeze((g.CivHomebrewSDK.capabilities||[]).concat(['native-ui','scene','geometry','web'])),
  sessions:g.CivNanoVGSession,views:g.CivNanoVGPrototype,scene:g.CivNanoVGScene,
- geometry:g.CivNanoVGGeometry,web:g.CivNanoVGWeb});
+ geometry:g.CivNanoVGGeometry,keyboard:g.CivSDKKeyboard,web:g.CivNanoVGWeb});
 })(typeof window!=="undefined"?window:globalThis);
 '''
     notices = 'civapps-native-ui ' + version + '\nGPL-3.0-or-later\n\n'

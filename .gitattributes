@@ -1,0 +1,2 @@
+third_party/** -text linguist-vendored
+vendor/** -text linguist-generated
