@@ -17,7 +17,7 @@
   var lease={},closed=false;pool.active=lease;
   canvas.setAttribute('data-civ-pixels',image.source);
   return {source:image.source,
-   present:function(bytes){if(closed)throw Error('SDK framebuffer is closed');image.update(bytes);if(options.view)options.view.update(true);},
+   present:function(bytes){if(closed)throw Error('SDK framebuffer is closed');image.update(bytes);if(options.view)options.view.update(true,{deferPresentWait:options.deferPresentWait!==false});},
    close:function(){if(closed)return;closed=true;if(pool.active===lease)pool.active=null;if(canvas.getAttribute('data-civ-pixels')===image.source)canvas.removeAttribute('data-civ-pixels');if(options.view)options.view.invalidate();}
   };
  }

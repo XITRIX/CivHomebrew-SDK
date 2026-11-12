@@ -44,9 +44,9 @@ test('only the resident bootstrap handoff may replace a core before graphics ini
  assert.throws(()=>vm.runInContext(core.replace('var version='+JSON.stringify(version),'var version="99.0.0"'),context),/version mismatch/);
 });
 test('framebuffer leases retain bounded image slots and stale close cannot release a newer lease',()=>{
- let images=0,updates=0,invalidates=0;const geometry={pixels:()=>({source:'pixels:'+(++images),update:()=>updates++})};
- const {g}=load(),attributes=new Map(),canvas={setAttribute:(k,v)=>attributes.set(k,v),getAttribute:k=>attributes.get(k),removeAttribute:k=>attributes.delete(k)},options={session:{geometry},canvas,width:2,height:2,view:{update(){},invalidate(){invalidates++;}}};
+ let images=0,updates=0,invalidates=0;const presentations=[];const geometry={pixels:()=>({source:'pixels:'+(++images),update:()=>updates++})};
+ const {g}=load(),attributes=new Map(),canvas={setAttribute:(k,v)=>attributes.set(k,v),getAttribute:k=>attributes.get(k),removeAttribute:k=>attributes.delete(k)},options={session:{geometry},canvas,width:2,height:2,view:{update(force,options){presentations.push(options);},invalidate(){invalidates++;}}};
  const a=g.CivHomebrewSDK.framebuffer.create(options);assert.throws(()=>g.CivHomebrewSDK.framebuffer.create(options),/active lease/);a.present(new Uint8Array(16));a.close();
  const b=g.CivHomebrewSDK.framebuffer.create(options);a.close();assert.equal(images,1);assert(attributes.has('data-civ-pixels'));assert.throws(()=>a.present(new Uint8Array(16)),/closed/);b.close();
- const c=g.CivHomebrewSDK.framebuffer.create({...options,width:320,height:200});assert.equal(images,2);c.close();assert.equal(updates,1);assert.equal(invalidates,3);
+ const c=g.CivHomebrewSDK.framebuffer.create({...options,width:320,height:200,deferPresentWait:false});assert.equal(images,2);c.present(new Uint8Array(256000));c.close();assert.equal(updates,2);assert.equal(invalidates,3);assert.equal(presentations[0].deferPresentWait,true);assert.equal(presentations[1].deferPresentWait,false);
 });

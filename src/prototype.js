@@ -16,7 +16,7 @@
   else if(o.renderer)renderer=o.renderer;
   else if(o.browser){var canvas=document.createElement('canvas');canvas.id='nanovg-output';canvas.style.cssText='position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:10000;pointer-events:none';document.body.appendChild(canvas);renderer=g.CivNanoVGWeb.create(canvas);}
   else renderer=await g.CivNanoVGVulkan.create(o);
-  function update(force){
+  function update(force,presentation){
    if(closed)return false;
    try{
     var begin=Date.now(),key=root.__civNanoVGSceneKey?root.__civNanoVGSceneKey():null;
@@ -28,7 +28,7 @@
     stats.snapshotMs=Date.now()-begin;stats.warnings=scene.warnings;
     var hash=scene.__nanoHash||(scene.__nanoHash=JSON.stringify(scene.commands));if(hash===last&&force!==true){stats.unchanged++;return false;}
     begin=Date.now();var packet=geometry.build(scene,!!renderer.owner);stats.geometryMs=Date.now()-begin;
-    begin=Date.now();renderer.render(packet);stats.renderMs=Date.now()-begin;stats.frames++;stats.error='';last=hash;instance.scene=scene;instance.packet=packet;return true;
+    begin=Date.now();renderer.render(packet,presentation);stats.renderMs=Date.now()-begin;stats.frames++;stats.error='';last=hash;instance.scene=scene;instance.packet=packet;return true;
    }catch(e){var message=String(e.message);if(o.log&&message!==stats.error)o.log('NanoVG UI: '+message.slice(0,180));stats.error=message;throw e;}
   }
   function tick(){timer=null;try{update();}catch(e){if(o.error)o.error(e);}}

@@ -6,7 +6,7 @@ const root=path.resolve(__dirname,'..');
 function setup(){
  const g={console,setTimeout,clearTimeout};g.window=g;g.globalThis=g;const context=vm.createContext(g);
  for(const name of ['bytes','civ-vulkan','nanovg-shaders'])vm.runInContext(readModule(name),context);
- const mem=new Map(),calls=[],names=new Map(),buffers=new Map();let allocation=0x100000000n,handle=0x200000000n,fn=0x400000000n,timeout=false,overflow=false;
+ const mem=new Map(),calls=[],names=new Map(),buffers=new Map();let allocation=0x100000000n,handle=0x200000000n,fn=0x400000000n,timeout=false,overflow=false,queueFailure=false;
  const read=(at,n)=>Uint8Array.from({length:n},(_,i)=>mem.get(BigInt(at)+BigInt(i))||0);
  const write=(at,bytes)=>bytes.forEach((v,i)=>mem.set(BigInt(at)+BigInt(i),v));
  const put64=(at,value)=>{const b=Buffer.alloc(8);b.writeBigUInt64LE(BigInt(value));write(at,b);};
@@ -20,7 +20,8 @@ function setup(){
   else if(name==='vkMapMemory2'){put64(args[2],alloc(Number(read64(args[1]+40n))));}
   else if(name.startsWith('vkCreate')||name==='vkAllocateMemory'||name==='vkAllocateDescriptorSets'||name==='vkAllocateCommandBuffers'){
    handle+=16n;put64(args.at(-1),handle);if(name==='vkCreateBuffer')buffers.set(handle,read64(args[1]+24n));
-  }else if(name==='vkWaitForFences'&&timeout)return 2n;
+  }else if(name==='vkQueueWaitIdle'&&queueFailure)return 2n;
+  else if(name==='vkWaitForFences'&&timeout)return 2n;
   else if(name==='vkQueueSubmit'&&overflow)native.write32(BigInt(g.__civNanoVGVulkan.buffers.bins.mapped+60*34*897*8*4),1n);
   else if(name==='vkAcquireNextImage2KHR')native.write32(args[2],0n);
   return 0n;
@@ -28,7 +29,7 @@ function setup(){
  g.CivNanoVGNative={create:()=>c};g.CivNanoVGModules.display.createDisplay=async()=>({display:{physical:'9',device:'10',queue:'11',images:['12','13'],swapchain:'14',queueFamily:0,imageCount:2},objects:[]});
  vm.runInContext(readModule('vulkan'),context);
  const makePacket=()=>vm.runInContext('(()=>{var d=new Uint32Array(64);d.set([1920,1080,0,0,16,16,16,32,128,0,60,34]);return {width:1920,height:1080,draws:0,triangles:0,generation:1,data:d};})()',context);
- return {g,c,calls,read64,read,makePacket,setTimeout:()=>{timeout=true;},setOverflow:()=>{overflow=true;},get overflow(){return overflow;}};
+ return {g,c,calls,read64,read,makePacket,setQueueFailure:()=>{queueFailure=true;},setTimeout:()=>{timeout=true;},setOverflow:()=>{overflow=true;},get overflow(){return overflow;}};
 }
 test('Vulkan adapter uses owned pipelines and ABI-correct image views, retaining display at close',async()=>{
  const f=setup(),renderer=await f.g.CivNanoVGVulkan.create({});
@@ -115,4 +116,21 @@ test('native context borrows the correct backing-store slice for one synchronous
  vm.runInContext('var source=new Uint8Array(96);for(var i=0;i<source.length;i++)source[i]=i;var nativeContext=CivNanoVGNative.create();nativeContext.write(0x600000000,source.subarray(11,31));',context);
  assert.equal(copies.length,1);assert.equal(copies[0][2],20n);assert.deepEqual(Array.from({length:20},(_,i)=>native.get(0x600000000n+BigInt(i))),Array.from({length:20},(_,i)=>i+11));
  assert.equal(native.has(0x600000000n+20n),false);assert.equal(copies[0][1],0x500000000n+11n);
+});
+
+test('deferred presentation drains before mapped writes, sampling and video handoff',async()=>{
+ const f=setup(),renderer=await f.g.CivNanoVGVulkan.create({}),packet=f.makePacket();packet.revision=1;
+ renderer.render(packet,{deferPresentWait:true});assert.equal(renderer.owner.inFlight,true);assert.equal(f.calls.filter(c=>c.name==='vkQueueWaitIdle').length,0);
+ const events=[],write=f.c.write,call=f.c.call;f.c.write=(...args)=>{events.push('write');return write(...args);};f.c.call=(...args)=>{const result=call(...args);events.push(f.calls.at(-1).name);return result;};
+ packet.revision++;renderer.render(packet,{deferPresentWait:true});assert.equal(events[0],'vkQueueWaitIdle');assert(events.indexOf('write')>0);assert.equal(renderer.owner.inFlight,true);
+ renderer.sample([[0,0]]);assert.equal(renderer.owner.inFlight,false);
+ renderer.render(packet,{deferPresentWait:true});events.length=0;const lease=renderer.bindSurface(()=>{});assert.equal(events[0],'vkQueueWaitIdle');assert.equal(renderer.owner.inFlight,false);
+ renderer.render(packet,{deferPresentWait:true});assert.equal(renderer.owner.inFlight,false,'video-surface publication retains its synchronous completion contract');lease.close();
+ renderer.render(packet,{deferPresentWait:true});events.length=0;renderer.read();assert.equal(events[0],'vkQueueWaitIdle');assert.equal(renderer.owner.inFlight,false);
+ renderer.render(packet,{deferPresentWait:true});await renderer.close();assert.equal(renderer.owner.inFlight,false);assert.equal(renderer.owner.state,'retained');
+});
+test('failed deferred completion quarantines resources even when discovered by output sampling',async()=>{
+ const f=setup(),renderer=await f.g.CivNanoVGVulkan.create({});renderer.render(f.makePacket(),{deferPresentWait:true});f.setQueueFailure();
+ assert.throws(()=>renderer.sample([[0,0]]),/vkQueueWaitIdle returned 2/);assert.equal(renderer.owner.state,'quarantined');assert.equal(renderer.owner.inFlight,true);
+ await renderer.close();assert.equal(renderer.owner.state,'quarantined');assert(!f.calls.some(c=>c.name.startsWith('vkDestroy')));
 });

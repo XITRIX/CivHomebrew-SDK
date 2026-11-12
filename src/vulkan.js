@@ -99,19 +99,21 @@
     call('vkQueueSubmit',[d.queue,1,frameMemory+0x500,fence],true);submitted=true;
     call('vkWaitForFences',[device,1,frameMemory+0x608,1,2000000000n],true);submitted=false;call('vkResetFences',[device,1,frameMemory+0x608],true);
    }
-   function present(rasterize){
+   function drain(){if(submitted)try{call('vkQueueWaitIdle',[d.queue],true);submitted=false;owner.inFlight=false;}catch(e){failed=true;owner.state='quarantined';owner.error=String(e.message);throw e;}}
+   function present(rasterize,deferWait){
+    drain();
     call('vkAcquireNextImage2KHR',[device,frameMemory+0x100,frameMemory],true);var index=Number(c.native.read32(BigInt(frameMemory)));if(index>=commands.length)throw Error('Native UI acquire index');
     c.native.write64(BigInt(frameMemory+0x208),commands[index]);c.native.write64(BigInt(frameMemory+0x210),semaphores[index]);
     if(rasterize)c.native.write64(BigInt(frameMemory+0x688),commands[index]);
     call('vkQueueSubmit',[d.queue,1,frameMemory+(rasterize?0x800:0x300),0],true);submitted=true;
-    call('vkQueuePresentKHR',[d.queue,frameMemory+0x400],true);call('vkQueueWaitIdle',[d.queue],true);submitted=false;
+    call('vkQueuePresentKHR',[d.queue,frameMemory+0x400],true);owner.inFlight=true;if(!deferWait)drain();
    }
    owner.state='ready';owner.presentations=0;owner.recomputations=0;owner.uploadedBytes=0;
    owner.refreshEvents=[];await mark('ready');
-   return {owner:owner,render:function(packet){
+   return {owner:owner,render:function(packet,presentation){
     if(closed||failed)throw Error('Native UI session unavailable');if(packet.width!==1920||packet.height!==1080||packet.data.byteLength>input.bytes)throw Error('Native UI packet dimensions/bounds');
     try{
-     var begun=now(),uploadStart=begun;
+     var begun=now();drain();var gpuWaitMs=now()-begun,uploadStart=now();
      // Bulk geometry writes, with atlas upload only on a glyph/image change.
      // No JS byte-by-byte comparison or per-pixel loop on ordinary navigation.
      var raw=new Uint8Array(packet.data.buffer,packet.data.byteOffset,packet.data.byteLength);
@@ -144,30 +146,30 @@
      // before lending its mapped RGBA result; no second display or JS pixel copy.
      if(surface&&!needsBins)submit(computeCommands[1]);
      var computeMs=now()-binStart;uploadedPacket=packet;uploadedRevision=packet.revision;owner.recomputations++;var presentStart=now();
-     if(surface)surface.present({pointer:output.mapped,bytes:output.bytes,width:1920,height:1080});else present(!needsBins);owner.presentations++;
-     owner.lastTiming={uploadMs:uploadMs,computeFenceMs:computeMs,binsRebuilt:needsBins,gpuSceneHit:cacheHit,combinedRasterPresent:!needsBins,rasterPresentMs:now()-presentStart,totalMs:now()-begun};
+     if(surface)surface.present({pointer:output.mapped,bytes:output.bytes,width:1920,height:1080});else present(!needsBins,!!(presentation&&presentation.deferPresentWait));owner.presentations++;
+     owner.lastTiming={gpuWaitMs:gpuWaitMs,deferredWait:!!owner.inFlight,uploadMs:uploadMs,computeFenceMs:computeMs,binsRebuilt:needsBins,gpuSceneHit:cacheHit,combinedRasterPresent:!needsBins,rasterPresentMs:now()-presentStart,totalMs:now()-begun};
     }catch(e){failed=true;owner.state='quarantined';owner.error=String(e.message);throw e;}
    },bindSurface:function(publish){
-    if(closed||failed||surface||typeof publish!=='function')throw Error('Native UI surface is unavailable');
+    if(closed||failed||surface||typeof publish!=='function')throw Error('Native UI surface is unavailable');drain();
     var entry={present:publish};surface=entry;
     return {close:function(){if(surface===entry)surface=null;}};
    },presentCached:function(){if(closed||failed||surface||!owner.recomputations)throw Error('Native UI cached presentation unavailable');try{var t=now();present();owner.presentations++;return now()-t;}catch(e){failed=true;owner.state='quarantined';throw e;}},
    setRefresh:async function(rate){
-    if(closed||failed||!owner.recomputations)throw Error('Render a valid UI before changing refresh');if(rate!==60&&rate!==120)throw Error('Native UI refresh must be 60 or 120 Hz');
+    if(closed||failed||!owner.recomputations)throw Error('Render a valid UI before changing refresh');drain();if(rate!==60&&rate!==120)throw Error('Native UI refresh must be 60 or 120 Hz');
     if(!refreshController){g.__civNanoVGFiles={'compatibility-module.json':module,'vulkan-display.json':{displayResources:d}};refreshController=g.CivNanoVGModules.refresh.createRefreshRate(c.rpc,{directory:'local',present:async function(){for(var i=0;i<4;i++)present();return 4;},log:function(event){if(owner.refreshEvents.length<48)owner.refreshEvents.push(event);}});await refreshController.cleanup();}
     var result=await refreshController.set(rate);owner.requestedRefresh=rate;owner.refreshResult=result;return result;
    },refreshStatus:function(){return refreshController?refreshController.read():Promise.resolve(null);},
    confirmRefresh:async function(measurement){
-    if(closed||failed||!refreshController)throw Error('No active native UI refresh request');
+    if(closed||failed||!refreshController)throw Error('No active native UI refresh request');drain();
     if(!measurement||!Number.isInteger(measurement.frames)||measurement.frames<1||measurement.frames>240||!Number.isFinite(measurement.elapsedMs)||measurement.elapsedMs<=0)throw Error('Invalid refresh measurement');
     var state=await refreshController.measured(measurement);owner.refreshState=state;return state;
    },
    sample:function(points){
-    if(closed||failed||submitted||!owner.recomputations)throw Error('Native UI sample unavailable');
+    if(closed||failed||!owner.recomputations)throw Error('Native UI sample unavailable');drain();
     if(!Array.isArray(points)||points.length>64)throw Error('Native UI sample bound');
     return points.map(function(p){if(!Array.isArray(p)||p.length!==2||!Number.isInteger(p[0])||!Number.isInteger(p[1])||p[0]<0||p[0]>=1920||p[1]<0||p[1]>=1080)throw Error('Native UI sample coordinate');var v=Number(c.native.read32(BigInt(output.mapped+(p[1]*1920+p[0])*4)));return [v&255,(v>>>8)&255,(v>>>16)&255,v>>>24];});
-   },read:function(){if(failed||submitted)throw Error('Native UI readback unavailable');return c.read(output.mapped,output.bytes);},
-   close:async function(){if(closed)return;closed=true;try{if(!failed){if(refreshController)await refreshController.close();call('vkQueueWaitIdle',[d.queue],true);owner.state='retained';}}finally{owner.requiresRestart=true;}}};
+   },read:function(){if(closed||failed)throw Error('Native UI readback unavailable');drain();return c.read(output.mapped,output.bytes);},
+   close:async function(){if(closed)return;closed=true;try{if(!failed){drain();if(refreshController)await refreshController.close();call('vkQueueWaitIdle',[d.queue],true);owner.state='retained';}}finally{owner.requiresRestart=true;}}};
   }catch(e){owner.state='quarantined';owner.error=String(e.message);owner.requiresRestart=true;throw e;}
  }
  g.CivNanoVGVulkan={create:create};

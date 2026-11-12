@@ -1,6 +1,6 @@
 # CivHomebrew-SDK
 
-SDK version **1.2.0**, native UI API **1**. A shared NanoVG renderer for CivApps,
+SDK version **1.3.0**, native UI API **1**. A shared NanoVG renderer for CivApps,
 with retained geometry/fonts, native Vulkan rendering, a browser WebGL oracle,
 serialized foreground view leases and an exclusive video surface lease.
 
@@ -98,7 +98,7 @@ mix renderer releases in one process.
 Moonlight declares:
 
 ```json
-{"extensions":{"nativeUi":{"api":1,"library":"civapps-native-ui","version":"1.2.0"}}}
+{"extensions":{"nativeUi":{"api":1,"library":"civapps-native-ui","version":"1.3.0"}}}
 ```
 
 ## Build and test
@@ -184,3 +184,10 @@ queue completion before reuse.
 CPU preparation for a 320x200 framebuffer with a retained HUD. This is not a
 console FPS benchmark; use separate engine, packet preparation, upload, GPU and
 audio timings on the actual console.
+
+Framebuffer presentation defers the graphics queue wait until the next native
+upload, allowing CPU work to overlap the preceding GPU frame. Output reads,
+sampling, video-surface handoff, refresh changes and normal close drain the queue
+first. GPU-owned mapped input and submission records are never reused before
+completion. Ordinary UI updates remain synchronous. Pass
+`deferPresentWait:false` to framebuffer creation to request synchronous output.
